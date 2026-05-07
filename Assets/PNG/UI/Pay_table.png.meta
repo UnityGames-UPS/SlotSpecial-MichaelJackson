@@ -1,0 +1,806 @@
+fileFormatVersion: 2
+guid: 6754a2729f17d4db4ac784d73f695ffd
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -385188091999768785
+    second: Pay_table_0
+  - first:
+      213: 2248510173478362879
+    second: Pay_table_1
+  - first:
+      213: 7707460005409562176
+    second: Pay_table_2
+  - first:
+      213: 2118595892279521676
+    second: Pay_table_3
+  - first:
+      213: 4495990948957116314
+    second: Pay_table_4
+  - first:
+      213: 6923797293709998620
+    second: Pay_table_5
+  - first:
+      213: 2323089295938010179
+    second: Pay_table_6
+  - first:
+      213: 3291763458239777881
+    second: Pay_table_7
+  - first:
+      213: -2334173671175080784
+    second: Pay_table_8
+  - first:
+      213: 1286880764991634013
+    second: Pay_table_9
+  - first:
+      213: -8624357011478864511
+    second: Pay_table_10
+  - first:
+      213: -9017703959130949103
+    second: Pay_table_11
+  - first:
+      213: -8954809697272719479
+    second: Pay_table_12
+  - first:
+      213: 8799212748750844480
+    second: Pay_table_13
+  - first:
+      213: -736892834345082385
+    second: Pay_table_14
+  - first:
+      213: 4522552394418366405
+    second: Pay_table_15
+  - first:
+      213: 2640381411691000816
+    second: Pay_table_16
+  - first:
+      213: 235119756285564297
+    second: Pay_table_17
+  - first:
+      213: -2517494237550661446
+    second: Pay_table_18
+  - first:
+      213: -6737939027214277555
+    second: Pay_table_19
+  - first:
+      213: -7258925343684772312
+    second: Pay_table_20
+  - first:
+      213: 4902478185596398350
+    second: Pay_table_21
+  - first:
+      213: -1542005991513725441
+    second: Pay_table_22
+  - first:
+      213: -3201852320039818964
+    second: Pay_table_23
+  - first:
+      213: -2764269462484638641
+    second: Pay_table_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Pay_table_0
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 928
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2fa4ac987987aaf0800000000000000
+      internalID: -385188091999768785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_1
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 928
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffe9704f610543f10800000000000000
+      internalID: 2248510173478362879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_2
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 928
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04e97fef90666fa60800000000000000
+      internalID: 7707460005409562176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_3
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 928
+        width: 286
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c813ced3db3c66d10800000000000000
+      internalID: 2118595892279521676
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_4
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 928
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a97d5f182f7f46e30800000000000000
+      internalID: 4495990948957116314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_5
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 703
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a356c64f4461060800000000000000
+      internalID: 6923797293709998620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_6
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 703
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34cb5e908654d3020800000000000000
+      internalID: 2323089295938010179
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_7
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 703
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95c4efcbc61bead20800000000000000
+      internalID: 3291763458239777881
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_8
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 703
+        width: 286
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b43a8db9695b9fd0800000000000000
+      internalID: -2334173671175080784
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_9
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 703
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5afb91dc3bebd110800000000000000
+      internalID: 1286880764991634013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_10
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 474
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18d17aaedf0205880800000000000000
+      internalID: -8624357011478864511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_11
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 474
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11abd5ae60eaad280800000000000000
+      internalID: -9017703959130949103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_12
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 474
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98716d266002ab380800000000000000
+      internalID: -8954809697272719479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_13
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 474
+        width: 286
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 042f160ff551d1a70800000000000000
+      internalID: 8799212748750844480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_14
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 474
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe1a4531fd706c5f0800000000000000
+      internalID: -736892834345082385
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_15
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 249
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c72663f07553ce30800000000000000
+      internalID: 4522552394418366405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_16
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 249
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f3f26397e484a420800000000000000
+      internalID: 2640381411691000816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_17
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 249
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 985d3113c20534300800000000000000
+      internalID: 235119756285564297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_18
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 249
+        width: 286
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab033b64450101dd0800000000000000
+      internalID: -2517494237550661446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_19
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 249
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d44e6a467280e72a0800000000000000
+      internalID: -6737939027214277555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_20
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 24
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82eb69efbdd134b90800000000000000
+      internalID: -7258925343684772312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_21
+      rect:
+        serializedVersion: 2
+        x: 410
+        y: 24
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0b23937fe9190440800000000000000
+      internalID: 4902478185596398350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_22
+      rect:
+        serializedVersion: 2
+        x: 798
+        y: 24
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff5ec4a78b1b99ae0800000000000000
+      internalID: -1542005991513725441
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_23
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 24
+        width: 286
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2924c0774cb093d0800000000000000
+      internalID: -3201852320039818964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pay_table_24
+      rect:
+        serializedVersion: 2
+        x: 1577
+        y: 24
+        width: 285
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f44a421d19753a9d0800000000000000
+      internalID: -2764269462484638641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Pay_table_0: -385188091999768785
+      Pay_table_1: 2248510173478362879
+      Pay_table_10: -8624357011478864511
+      Pay_table_11: -9017703959130949103
+      Pay_table_12: -8954809697272719479
+      Pay_table_13: 8799212748750844480
+      Pay_table_14: -736892834345082385
+      Pay_table_15: 4522552394418366405
+      Pay_table_16: 2640381411691000816
+      Pay_table_17: 235119756285564297
+      Pay_table_18: -2517494237550661446
+      Pay_table_19: -6737939027214277555
+      Pay_table_2: 7707460005409562176
+      Pay_table_20: -7258925343684772312
+      Pay_table_21: 4902478185596398350
+      Pay_table_22: -1542005991513725441
+      Pay_table_23: -3201852320039818964
+      Pay_table_24: -2764269462484638641
+      Pay_table_3: 2118595892279521676
+      Pay_table_4: 4495990948957116314
+      Pay_table_5: 6923797293709998620
+      Pay_table_6: 2323089295938010179
+      Pay_table_7: 3291763458239777881
+      Pay_table_8: -2334173671175080784
+      Pay_table_9: 1286880764991634013
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
