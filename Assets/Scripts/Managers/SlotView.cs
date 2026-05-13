@@ -200,6 +200,10 @@ public class SlotView : MonoBehaviour
         cycleDistance = symbolHeight;
 
         middlePosition = 0f;
+        if (reelTransforms != null && reelTransforms.Length > 0 && reelTransforms[0] != null)
+        {
+            middlePosition = reelTransforms[0].localPosition.y;
+        }
 
         currentDisplayMatrix = new List<List<int>>();
         for (int col = 0; col < 5; col++)
@@ -325,51 +329,8 @@ public class SlotView : MonoBehaviour
 
         for (int col = 0; col < 5; col++)
         {
-            StartReelCycleWithDelay(col, col * reelStartStagger);
+            StartReelCycle(col);
         }
-    }
-
-    private void StartReelCycleWithDelay(int columnIndex, float delay)
-    {
-        if (columnIndex >= reelTransforms.Length) return;
-
-        Transform slotTransform = reelTransforms[columnIndex];
-
-        Sequence startSequence = DOTween.Sequence();
-
-        if (delay > 0)
-        {
-            startSequence.AppendInterval(delay);
-        }
-
-        startSequence.Append(
-            slotTransform.DOLocalMoveY(middlePosition + anticipationUpDistance, anticipationUpDuration)
-                .SetEase(Ease.OutCubic)
-        );
-
-        startSequence.Append(
-            slotTransform.DOLocalMoveY(middlePosition - dropDownDistance, dropDownDuration)
-                .SetEase(Ease.InCubic)
-        );
-
-        startSequence.Append(
-            slotTransform.DOLocalMoveY(middlePosition, settleBounceDuration)
-                .SetEase(Ease.OutBounce)
-        );
-
-        startSequence.OnComplete(() => {
-            if (isSpinning)
-            {
-                StartReelCycle(columnIndex);
-            }
-        });
-
-        startSequence.Play();
-
-        if (spinTweens.Count <= columnIndex)
-            spinTweens.Add(startSequence);
-        else
-            spinTweens[columnIndex] = startSequence;
     }
 
     private void StartReelCycle(int columnIndex)
@@ -495,7 +456,7 @@ public class SlotView : MonoBehaviour
         }
         else
         {
-            longestStopTime = (4 * stagger) + stopOvershootDuration + stopBounceBackDuration + stopSettleDuration;
+            longestStopTime = (4 * stagger) + stopOvershootDuration + stopBounceBackDuration;
         }
 
         yield return new WaitForSeconds(longestStopTime);
@@ -566,12 +527,12 @@ public class SlotView : MonoBehaviour
 
             quickStopSequence.Append(
                 slotTransform.DOLocalMoveY(middlePosition - quickStopOvershoot, quickStopDuration * 0.3f)
-                    .SetEase(Ease.InCubic)
+                    .SetEase(Ease.OutQuad)
             );
 
             quickStopSequence.Append(
                 slotTransform.DOLocalMoveY(middlePosition, quickStopDuration * 0.7f)
-                    .SetEase(Ease.OutBack, 1.2f)
+                    .SetEase(Ease.OutQuad)
             );
 
             quickStopSequence.OnComplete(() => PlayStopAnimationsForColumn(columnIndex));
@@ -584,17 +545,12 @@ public class SlotView : MonoBehaviour
 
             stopSequence.Append(
                 slotTransform.DOLocalMoveY(middlePosition - stopOvershootDistance, stopOvershootDuration)
-                    .SetEase(Ease.InCubic)
+                    .SetEase(Ease.OutQuad)
             );
 
             stopSequence.Append(
-                slotTransform.DOLocalMoveY(middlePosition + stopBounceBackDistance, stopBounceBackDuration)
-                    .SetEase(Ease.OutCubic)
-            );
-
-            stopSequence.Append(
-                slotTransform.DOLocalMoveY(middlePosition, stopSettleDuration)
-                    .SetEase(Ease.OutBounce)
+                slotTransform.DOLocalMoveY(middlePosition, stopBounceBackDuration)
+                    .SetEase(Ease.OutQuad)
             );
 
             stopSequence.OnComplete(() => PlayStopAnimationsForColumn(columnIndex));

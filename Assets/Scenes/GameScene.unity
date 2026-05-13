@@ -557,7 +557,7 @@ MonoBehaviour:
   uiManager: {fileID: 1159248010}
   popupManager: {fileID: 67106990}
   slotView: {fileID: 1838521567}
-  normalSpinDuration: 3.5
+  normalSpinDuration: 1.5
 --- !u!4 &32100145
 Transform:
   m_ObjectHideFlags: 0
@@ -1138,7 +1138,7 @@ MonoBehaviour:
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: -5378628152626587434, guid: 2dbe478a8d0bf4cd0b62e7af41fdbe40, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: -5378628152626587434, guid: 2dbe478a8d0bf4cd0b62e7af41fdbe40, type: 3}
   m_AnimationTriggers:
@@ -12316,7 +12316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.5529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -13430,15 +13430,15 @@ MonoBehaviour:
   - {fileID: 378125170}
   pageSlideWidth: 1594
   rulePageIndicators:
-  - {fileID: 781556298}
-  - {fileID: 823315104}
-  - {fileID: 1391354853}
-  - {fileID: 1904093427}
-  - {fileID: 1038347482}
-  - {fileID: 1122974690}
-  - {fileID: 798240239}
-  - {fileID: 1223401106}
-  - {fileID: 2130886946}
+  - {fileID: 1174138667}
+  - {fileID: 264581404}
+  - {fileID: 824919494}
+  - {fileID: 1883882506}
+  - {fileID: 1257585252}
+  - {fileID: 865489938}
+  - {fileID: 1449402546}
+  - {fileID: 1182199762}
+  - {fileID: 2113990958}
   ruleBetMultiplierTexts: []
   ruleMinWinMultiplierTexts: []
   ruleMaxWinMultiplierTexts: []
@@ -17451,7 +17451,7 @@ MonoBehaviour:
     m_FadeDuration: 0.1
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 4862675867180343918, guid: abb79cd5bde5f44f79155db5189eddaf, type: 3}
     m_SelectedSprite: {fileID: 0}
     m_DisabledSprite: {fileID: 4862675867180343918, guid: abb79cd5bde5f44f79155db5189eddaf, type: 3}
   m_AnimationTriggers:

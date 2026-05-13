@@ -739,8 +739,8 @@ public class UIManager : MonoBehaviour
 
         if (gameRulesPanelRect)
         {
-            gameRulesPanelRect.anchoredPosition = new Vector2(Screen.width, gameRulesPanelRect.anchoredPosition.y);
-            gameRulesPanelRect.DOAnchorPosX(0f, 0.35f).SetEase(Ease.OutCubic);
+            gameRulesPanelRect.localScale = Vector3.zero;
+            gameRulesPanelRect.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
         }
     }
 
@@ -750,13 +750,12 @@ public class UIManager : MonoBehaviour
 
         if (gameRulesPanelRect)
         {
-            gameRulesPanelRect.DOAnchorPosX(Screen.width, 0.35f)
-                .SetEase(Ease.InCubic)
+            gameRulesPanelRect.DOScale(Vector3.zero, 0.25f)
+                .SetEase(Ease.InBack)
                 .OnComplete(() =>
                 {
                     gameRulesPanel.SetActive(false);
-                    if (gameRulesPanelRect)
-                        gameRulesPanelRect.anchoredPosition = new Vector2(0f, gameRulesPanelRect.anchoredPosition.y);
+                    gameRulesPanelRect.localScale = Vector3.one;
                 });
         }
         else
