@@ -4,10 +4,15 @@ using TMPro;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class UIManager : MonoBehaviour
 {
-    [Header("References")]
+    [Header("Bonus UI")]
+    [SerializeField] private WheelBonusPanel wheelBonusPanel;
+    [SerializeField] private RectTransform wheelBonusRect;
+
+    [Header("UI References")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PopupManager popupManager; 
     [SerializeField] private GameObject gameScreen;
@@ -21,8 +26,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text betAmountText;
     [SerializeField] private Button betPlusButton;
     [SerializeField] private Button betMinusButton;
-
-
 
     [Header("Balance & Win")]
     [SerializeField] private TMP_Text balanceText;
@@ -89,36 +92,10 @@ public class UIManager : MonoBehaviour
 
     [Header("Free Spin Count Display - Game Screen")]
     [SerializeField] private GameObject freeSpinCountContainer;
-    [SerializeField] private Image freeSpinCountTens;
-    [SerializeField] private Image freeSpinCountOnes;
-    [SerializeField] private Sprite[] freeSpinNumberSprites;
+    [SerializeField] private TMP_Text freeSpinCountText;
     [SerializeField] private GameObject lastSpinLeftObject;
 
-    [Header("Free Spin Start Popup")]
-    [SerializeField] private GameObject freeSpinStartPopup;
-    [SerializeField] private RectTransform freeSpinStartPopupRect;
-    [SerializeField] private Image freeSpinStartPopImage;
-    [SerializeField] private Button freeSpinStartCloseButton;
-    [SerializeField] private Image freeSpinStartCountTens;
-    [SerializeField] private Image freeSpinStartCountOnes;
-    [SerializeField] private Sprite[] numberSprites;
-    [SerializeField] private GameObject freeSpinStartPlusIcon;
-
-    [Header("Free Spin End Popup")]
-    [SerializeField] private GameObject freeSpinEndPopup;
-    [SerializeField] private RectTransform freeSpinEndPopupRect;
-    [SerializeField] private Image freeSpinEndPopImage;
-    [SerializeField] private Button freeSpinEndCloseButton;
-
-    [Header("Free Spin End - Win Amount Display")]
-    [SerializeField] private Transform winAmountContainer;
-    [SerializeField] private HorizontalLayoutGroup winAmountLayoutGroup;
-    [SerializeField] private Image[] winAmountDigits;
-    [SerializeField] private GameObject decimalPointObject;
-
-    [Header("Free Spin End - Total Spin Count")]
-    [SerializeField] private Image freeSpinEndCountTens;
-    [SerializeField] private Image freeSpinEndCountOnes;
+  
 
     [Header("Animation Settings")]
     [SerializeField] private float winCountDuration = 0.25f;
@@ -129,10 +106,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private int popupBounceCount = 2;
     [SerializeField] private float freeSpinIntroDuration = 2f;
 
-    [Header("Expand-Shrink Controls")]
-    [SerializeField] private Button expandButton;
-    [SerializeField] private Button shrinkButton;
-    private bool isExpanded = false;
+    
 
     private int selectedRounds = 10;
     private Tween balanceTween;
@@ -211,9 +185,6 @@ public class UIManager : MonoBehaviour
 
         if (freeSpinCountContainer) freeSpinCountContainer.SetActive(false);
         if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
-
-        if (freeSpinStartPopup) freeSpinStartPopup.SetActive(false);
-        if (freeSpinEndPopup) freeSpinEndPopup.SetActive(false);
     }
 
 
@@ -838,11 +809,29 @@ public class UIManager : MonoBehaviour
         totalFreeSpinsAwarded = spinsAwarded;
         currentWinDisplayValue = 0;
         UpdateWinDisplay(0);
+
+        if (normalSpinBackground) normalSpinBackground.SetActive(false);
+        if (freeSpinBackground) freeSpinBackground.SetActive(true);
+        
+        if (freeSpinCountContainer) freeSpinCountContainer.SetActive(true);
+        UpdateFreeSpinCount(spinsAwarded);
+
+        if (spinButton) spinButton.gameObject.SetActive(false);
+        if (stopButton) stopButton.gameObject.SetActive(false);
+        SetBetControlsEnabled(false);
     }
 
     internal void OnFreeSpinsEnded(double serverTotalRoundWin, int serverTotalSpinsUsed)
     {
-        // Always use server-provided spinsUsed (server is authoritative)
+        if (normalSpinBackground) normalSpinBackground.SetActive(true);
+        if (freeSpinBackground) freeSpinBackground.SetActive(false);
+
+        if (freeSpinCountContainer) freeSpinCountContainer.SetActive(false);
+        if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
+
+        if (spinButton) spinButton.gameObject.SetActive(true);
+        if (stopButton) stopButton.gameObject.SetActive(false);
+        SetBetControlsEnabled(true);
     }
 
     internal void UpdateFreeSpinCount(int remainingSpins)
@@ -861,28 +850,8 @@ public class UIManager : MonoBehaviour
         {
             if (freeSpinCountContainer) freeSpinCountContainer.SetActive(true);
             if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
-            SetFreeSpinCountImages(remainingSpins);
+            if (freeSpinCountText) freeSpinCountText.text = remainingSpins.ToString();
         }
-    }
-
-    private void SetFreeSpinCountImages(int count)
-    {
-        if (freeSpinNumberSprites == null || freeSpinNumberSprites.Length < 10) return;
-
-        // Use SetActive instead of alpha to show/hide tens digit
-        if (freeSpinCountTens)
-        {
-            if (count >= 10)
-            {
-                freeSpinCountTens.gameObject.SetActive(true);
-                freeSpinCountTens.sprite = freeSpinNumberSprites[count / 10];
-            }
-            else
-            {
-                freeSpinCountTens.gameObject.SetActive(false);
-            }
-        }
-        if (freeSpinCountOnes) freeSpinCountOnes.sprite = freeSpinNumberSprites[count % 10];
     }
 
     #endregion
@@ -909,11 +878,52 @@ public class UIManager : MonoBehaviour
     }
 
     #endregion
-    private void UpdateBalanceDisplay(double newBalance)
+    internal void UpdateBalanceDisplay(double newBalance)
     {
         if (balanceText)
             balanceText.text = newBalance.ToString("F2");
     }
+
+    #region Wheel Bonus
+
+    internal void ShowWheelBonus(WheelBonusConfig config, ServerWheelBonusResult result, Action<ServerWheelBonusResult> onComplete)
+    {
+        if (wheelBonusPanel == null)
+        {
+            onComplete?.Invoke(result);
+            return;
+        }
+
+        wheelBonusPanel.gameObject.SetActive(true);
+        
+        // Simple scale in animation for the panel
+        if (wheelBonusRect != null)
+        {
+            wheelBonusRect.localScale = Vector3.zero;
+            wheelBonusRect.DOScale(1f, 0.4f).SetEase(Ease.OutBack);
+        }
+
+        wheelBonusPanel.Setup(config, result, (finalResult) =>
+        {
+            if (wheelBonusRect != null)
+            {
+                wheelBonusRect.DOScale(0f, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
+                {
+                    wheelBonusPanel.gameObject.SetActive(false);
+                    onComplete?.Invoke(finalResult);
+                });
+            }
+            else
+            {
+                wheelBonusPanel.gameObject.SetActive(false);
+                onComplete?.Invoke(finalResult);
+            }
+        });
+
+        wheelBonusPanel.StartBonus();
+    }
+
+    #endregion
 
     private void UpdateWinDisplay(double amount)
     {

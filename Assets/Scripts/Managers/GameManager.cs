@@ -206,8 +206,11 @@ public class GameManager : MonoBehaviour
 
     private void OnReelsStoppedComplete()
     {
-        // TODO: When wheel bonus is implemented, check wheelBonusTriggered here
-        // if (lastResult.wheelBonusTriggered) { StartWheelBonus(); return; }
+        if (lastResult.wheelBonusTriggered)
+        {
+            StartWheelBonus(lastResult.wheelBonusResult);
+            return;
+        }
 
         if (lastResult.winAmount > 0 && lastResult.winLines != null && lastResult.winLines.Count > 0)
         {
@@ -453,6 +456,52 @@ public class GameManager : MonoBehaviour
         uiManager.OnFreeSpinsEnded(totalRoundWin, totalSpinsUsed);
 
         currentState = GameState.Idle;
+    }
+
+    #endregion
+
+    #region Wheel Bonus
+
+    private void StartWheelBonus(ServerWheelBonusResult result)
+    {
+        if (uiManager != null)
+        {
+            uiManager.ShowWheelBonus(gameConfig.wheelBonus, result, OnWheelBonusComplete);
+        }
+        else
+        {
+            OnWheelBonusComplete(result);
+        }
+    }
+
+    private void OnWheelBonusComplete(ServerWheelBonusResult result)
+    {
+        // 1. Update balance if credits awarded
+        if (result.creditAward > 0)
+        {
+            playerData.balance += result.creditAward;
+            uiManager.UpdateBalanceDisplay(playerData.balance);
+        }
+
+        // 2. Trigger free spins if awarded
+        if (result.result.type == "freeGames")
+        {
+            StartFreeSpins(result.result.count ?? 0);
+            StartFirstFreeSpin();
+        }
+        else
+        {
+            // If it was just credits, we return to the normal flow
+            if (isAutoPlaying)
+            {
+                StartCoroutine(DelayBeforeNextRound());
+            }
+            else
+            {
+                currentState = GameState.Idle;
+                uiManager.OnSpinCompleted(lastResult);
+            }
+        }
     }
 
     #endregion

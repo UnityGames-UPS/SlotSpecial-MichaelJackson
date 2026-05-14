@@ -31,11 +31,27 @@ public class ServerFeatures
     public BonusBetFeature bonusBet;
     public FeatureDescription stackedWild;
     public FeatureDescription moonwalkWild;
-    public FeatureDescription wheelBonus;
+    public WheelBonusConfig wheelBonus;
     public FeatureDescription beatItFreeGames;
     public FeatureDescription smoothCriminalFreeGames;
     public PayRulesData payRules;
     public ServerUIData uiData;
+}
+
+[Serializable]
+public class WheelBonusConfig
+{
+    public List<WheelSegment> wheelSegments;
+    public List<int> multiplierWheelSegments;
+}
+
+[Serializable]
+public class WheelSegment
+{
+    public string type;         // "credits", "freeGames", "multiplierWheel"
+    public double value;        // Credit value or initial credit for multiplier wheel
+    public int? count;          // Free games count
+    public string feature;      // "beatIt" or "smoothCriminal"
 }
 
 [Serializable]
@@ -171,8 +187,18 @@ public class ServerFreeGameResult
 public class ServerWheelBonusResult
 {
     public bool triggered;
-    public string result;       // Wheel spin result (credits, free games, etc.) — for later
-    public string multiplierResult; // Multiplier wheel result — for later
+    public WheelBonusResultDetail result;
+    public int? multiplierResult;
+    public double creditAward;
+}
+
+[Serializable]
+public class WheelBonusResultDetail
+{
+    public string type;
+    public double value;
+    public int? count;
+    public string feature;
 }
 
 [Serializable]
@@ -289,6 +315,9 @@ public class GameConfig
     // Bonus bet (for later)
     public bool bonusBetEnabled;
     public int bonusBetMultiplier;
+
+    // Wheel bonus
+    public WheelBonusConfig wheelBonus;
 }
 
 [Serializable]
@@ -328,6 +357,7 @@ public class SpinResult
     // Feature results
     public FreeGameData freeGameData;
     public bool wheelBonusTriggered;
+    public ServerWheelBonusResult wheelBonusResult;
     public List<List<int>> moonwalkWildPositions;  // [[col,row], ...]
     public bool hasMoonwalkWild;
     public List<int> stackedWildReels;
@@ -454,6 +484,12 @@ public static class InitDataConverter
             config.bonusBetMultiplier = serverData.features.bonusBet.description.multiplier;
         }
 
+        // Wheel bonus
+        if (serverData.features?.wheelBonus != null)
+        {
+            config.wheelBonus = serverData.features.wheelBonus;
+        }
+
         return config;
     }
 
@@ -507,6 +543,7 @@ public static class InitDataConverter
 
             // Wheel bonus
             wheelBonusTriggered = serverResponse.features?.wheelBonus?.triggered ?? false,
+            wheelBonusResult = serverResponse.features?.wheelBonus,
 
             // Moonwalk wilds
             moonwalkWildPositions = serverResponse.features?.moonwalkWilds?.positions,
