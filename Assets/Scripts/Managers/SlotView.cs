@@ -10,34 +10,44 @@ public class SlotView : MonoBehaviour
     [SerializeField] private GameManager gameManager;
 
     [Header("Symbol Sprites - Assign by Name")]
-    [Tooltip("Symbol sprites assigned by name. Array order: Nine, Ten, J, Q, K, A, Hat, Glove, Shoes, MJ, Jackpot, Wild, MoonwalkWild, Bonus")]
-    [SerializeField] private Sprite spriteNine;              // ID: 0
-    [SerializeField] private Sprite spriteTen;               // ID: 1
-    [SerializeField] private Sprite spriteJ;                 // ID: 2
-    [SerializeField] private Sprite spriteQ;                 // ID: 3
-    [SerializeField] private Sprite spriteK;                 // ID: 4
-    [SerializeField] private Sprite spriteA;                 // ID: 5
-    [SerializeField] private Sprite spriteHat;               // ID: 6
-    [SerializeField] private Sprite spriteGlove;             // ID: 7
-    [SerializeField] private Sprite spriteShoes;             // ID: 8
-    [SerializeField] private Sprite spriteMJ;                // ID: 9
-    [SerializeField] private Sprite spriteJackpot;           // ID: 10
-    [SerializeField] private Sprite spriteWild;              // ID: 11
-    [SerializeField] private Sprite spriteMoonwalkWild;      // ID: 12
-    [SerializeField] private Sprite spriteBonus;             // ID: 13
+    [Tooltip("Symbol sprites assigned by name. Array order: Wild, Glove, Hat, Sunglasses, Shoes, Ace, King, Queen, Jack, Ten, Nine, Jackpot, Bonus, MoonwalkWild, StackedWild")]
+    [SerializeField] private Sprite spriteWild;              // ID: 0
+    [SerializeField] private Sprite spriteGlove;             // ID: 1
+    [SerializeField] private Sprite spriteHat;               // ID: 2
+    [SerializeField] private Sprite spriteSunglasses;        // ID: 3
+    [SerializeField] private Sprite spriteShoes;             // ID: 4
+    [SerializeField] private Sprite spriteAce;               // ID: 5
+    [SerializeField] private Sprite spriteKing;              // ID: 6
+    [SerializeField] private Sprite spriteQueen;             // ID: 7
+    [SerializeField] private Sprite spriteJack;              // ID: 8
+    [SerializeField] private Sprite spriteTen;               // ID: 9
+    [SerializeField] private Sprite spriteNine;              // ID: 10
+    [SerializeField] private Sprite spriteJackpot;           // ID: 11
+    [SerializeField] private Sprite spriteBonus;             // ID: 12
+    [SerializeField] private Sprite spriteMoonwalkWild;      // ID: 13
+    [SerializeField] private Sprite spriteMoonwalkWildBonus; // ID: 1013
+    [SerializeField] private Sprite spriteMoonwalkWildJackpot; // ID: 2013
+    [SerializeField] private Sprite spriteStackedWild;       // ID: 14
+    [SerializeField] private Sprite spriteStackedWildBonus;  // ID: 1014
+    [SerializeField] private Sprite spriteStackedWildJackpot; // ID: 2014
 
-    private Sprite[] symbolSprites;
+    private Dictionary<int, Sprite> symbolSpritesMap;
 
     [Header("Win Animation Sprite Arrays - One per Symbol ID")]
-    [Tooltip("Animation sprite arrays for each symbol. Array index = symbol ID (0-13)")]
+    [Tooltip("Animation sprite arrays for each symbol. Array index = symbol ID (0-14)")]
 
-    [SerializeField] private List<Sprite> animSpritesJackpot;        // ID: 10
-    [SerializeField] private List<Sprite> animSpritesWild;           // ID: 11
-    [SerializeField] private List<Sprite> animSpritesMoonwalkWild;   // ID: 12
-    [SerializeField] private List<Sprite> animSpritesBonus;          // ID: 13
+    [SerializeField] private List<Sprite> animSpritesWild;           // ID: 0
+    [SerializeField] private List<Sprite> animSpritesJackpot;        // ID: 11
+    [SerializeField] private List<Sprite> animSpritesBonus;          // ID: 12
+    [SerializeField] private List<Sprite> animSpritesMoonwalkWild;   // ID: 13
+    [SerializeField] private List<Sprite> animSpritesMoonwalkWildBonus; // ID: 1013
+    [SerializeField] private List<Sprite> animSpritesMoonwalkWildJackpot; // ID: 2013
+    [SerializeField] private List<Sprite> animSpritesStackedWild;    // ID: 14
+    [SerializeField] private List<Sprite> animSpritesStackedWildBonus; // ID: 1014
+    [SerializeField] private List<Sprite> animSpritesStackedWildJackpot; // ID: 2014
 
-    // Internal array of animation sprite lists
-    private List<Sprite>[] animationSpriteArrays;
+    // Internal map of animation sprite lists
+    private Dictionary<int, List<Sprite>> animationSpriteMap;
 
     [Header("Reel Containers")]
     [SerializeField] private Transform[] reelTransforms;
@@ -150,49 +160,48 @@ public class SlotView : MonoBehaviour
 
     private void BuildSymbolSpriteArray()
     {
-        // Build the symbol sprite array from named sprite fields
-        symbolSprites = new Sprite[14];
-        symbolSprites[0] = spriteNine;
-        symbolSprites[1] = spriteTen;
-        symbolSprites[2] = spriteJ;
-        symbolSprites[3] = spriteQ;
-        symbolSprites[4] = spriteK;
-        symbolSprites[5] = spriteA;
-        symbolSprites[6] = spriteHat;
-        symbolSprites[7] = spriteGlove;
-        symbolSprites[8] = spriteShoes;
-        symbolSprites[9] = spriteMJ;
-        symbolSprites[10] = spriteJackpot;
-        symbolSprites[11] = spriteWild;
-        symbolSprites[12] = spriteMoonwalkWild;
-        symbolSprites[13] = spriteBonus;
+        symbolSpritesMap = new Dictionary<int, Sprite>();
+        
+        symbolSpritesMap[0] = spriteWild;
+        symbolSpritesMap[1] = spriteGlove;
+        symbolSpritesMap[2] = spriteHat;
+        symbolSpritesMap[3] = spriteSunglasses;
+        symbolSpritesMap[4] = spriteShoes;
+        symbolSpritesMap[5] = spriteAce;
+        symbolSpritesMap[6] = spriteKing;
+        symbolSpritesMap[7] = spriteQueen;
+        symbolSpritesMap[8] = spriteJack;
+        symbolSpritesMap[9] = spriteTen;
+        symbolSpritesMap[10] = spriteNine;
+        symbolSpritesMap[11] = spriteJackpot;
+        symbolSpritesMap[12] = spriteBonus;
+        
+        // MoonwalkWild Variants
+        symbolSpritesMap[13] = spriteMoonwalkWild;
+        symbolSpritesMap[1013] = spriteMoonwalkWildBonus;
+        symbolSpritesMap[2013] = spriteMoonwalkWildJackpot;
+        
+        // StackedWild Variants
+        symbolSpritesMap[14] = spriteStackedWild;
+        symbolSpritesMap[1014] = spriteStackedWildBonus;
+        symbolSpritesMap[2014] = spriteStackedWildJackpot;
 
-        // Validate
-        for (int i = 0; i < symbolSprites.Length; i++)
-        {
-            if (symbolSprites[i] == null)
-            {
-                Debug.LogError($"[SlotView] Symbol sprite at index {i} is not assigned in inspector!");
-            }
-        }
-
-        // Build the animation sprite arrays
-        animationSpriteArrays = new List<Sprite>[14];
-        // Indices 0-9 are left null as they do not have win animations.
-        animationSpriteArrays[10] = animSpritesJackpot;
-        animationSpriteArrays[11] = animSpritesWild;
-        animationSpriteArrays[12] = animSpritesMoonwalkWild;
-        animationSpriteArrays[13] = animSpritesBonus;
-
-        // Validate animation arrays
-        for (int i = 0; i < animationSpriteArrays.Length; i++)
-        {
-            if (animationSpriteArrays[i] == null || animationSpriteArrays[i].Count == 0)
-            {
-                // Debug.LogWarning($"[SlotView] Animation sprite array at index {i} is not assigned or empty!");
-            }
-        }
-
+        // Build the animation sprite map
+        animationSpriteMap = new Dictionary<int, List<Sprite>>();
+        
+        animationSpriteMap[0] = animSpritesWild;
+        animationSpriteMap[11] = animSpritesJackpot;
+        animationSpriteMap[12] = animSpritesBonus;
+        
+        // MoonwalkWild Variants
+        animationSpriteMap[13] = animSpritesMoonwalkWild;
+        animationSpriteMap[1013] = animSpritesMoonwalkWildBonus;
+        animationSpriteMap[2013] = animSpritesMoonwalkWildJackpot;
+        
+        // StackedWild Variants
+        animationSpriteMap[14] = animSpritesStackedWild;
+        animationSpriteMap[1014] = animSpritesStackedWildBonus;
+        animationSpriteMap[2014] = animSpritesStackedWildJackpot;
     }
 
     private void InitializeReels()
@@ -265,12 +274,12 @@ public class SlotView : MonoBehaviour
 
         for (int i = 0; i < 8; i++)
         {
-            reel.images[i].sprite = GetSymbolSprite(Random.Range(0, 14));
+            reel.images[i].sprite = GetSymbolSprite(Random.Range(0, 15));
         }
 
         for (int i = 11; i < 18; i++)
         {
-            reel.images[i].sprite = GetSymbolSprite(Random.Range(0, 14));
+            reel.images[i].sprite = GetSymbolSprite(Random.Range(0, 15));
         }
 
         if (isInitial && reelTransforms[columnIndex] != null)
@@ -285,20 +294,18 @@ public class SlotView : MonoBehaviour
 
     private Sprite GetSymbolSprite(int symbolId)
     {
-        // Validate symbolId range (0-15)
-        if (symbolId < 0 || symbolId >= symbolSprites.Length)
+        if (symbolSpritesMap.TryGetValue(symbolId, out Sprite sprite))
         {
-            Debug.LogWarning($"[SlotView] Invalid symbolId {symbolId}, using default sprite 0. Total sprites: {symbolSprites.Length}");
-            return symbolSprites[0];
+            if (sprite == null)
+            {
+                Debug.LogError($"[SlotView] Symbol sprite for ID {symbolId} is null!");
+                return symbolSpritesMap[0];
+            }
+            return sprite;
         }
 
-        if (symbolSprites[symbolId] == null)
-        {
-            Debug.LogError($"[SlotView] Symbol sprite for ID {symbolId} is null!");
-            return symbolSprites[0];
-        }
-
-        return symbolSprites[symbolId];
+        Debug.LogWarning($"[SlotView] Invalid symbolId {symbolId}, using default sprite 0.");
+        return symbolSpritesMap[0];
     }
 
     #endregion
@@ -391,7 +398,7 @@ public class SlotView : MonoBehaviour
             reel.images[i].sprite = reel.images[i - 1].sprite;
         }
 
-        reel.images[0].sprite = GetSymbolSprite(Random.Range(0, 14));
+        reel.images[0].sprite = GetSymbolSprite(Random.Range(0, 15));
     }
 
     #endregion
@@ -506,15 +513,16 @@ public class SlotView : MonoBehaviour
         // Detect scatter / wild symbols in this column for hit sounds
         if (currentDisplayMatrix != null && columnIndex < currentDisplayMatrix.Count)
         {
-            int bonusId = gameManager?.gameConfig != null
-                ? gameManager.gameConfig.bonusSymbolId
-                : 13;
+            int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
+            int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
+
             bool hasBonus = false;
-            bool hasWild    = false;
+            bool hasWild = false;
             foreach (int sym in currentDisplayMatrix[columnIndex])
             {
-                if (sym == bonusId)                              hasBonus = true;
-                if (sym == 11 || sym == 12) hasWild    = true; // Wild or MoonwalkWild
+                // Check base IDs and variant IDs
+                if (sym == bonusId || sym == 1013 || sym == 1014) hasBonus = true;
+                if (sym == wildId || sym == 13 || sym == 14 || sym == 1013 || sym == 1014 || sym == 2013 || sym == 2014) hasWild = true;
             }
             if (hasBonus) AudioManager.Instance?.PlayBonusHit();
             else if (hasWild) AudioManager.Instance?.PlayWildHit();
@@ -600,15 +608,18 @@ public class SlotView : MonoBehaviour
     {
         if (currentDisplayMatrix == null || col >= currentDisplayMatrix.Count) return;
         
-        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 13;
-        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 10;
+        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
+        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 11;
+        int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
         
         for (int row = 0; row < currentDisplayMatrix[col].Count; row++)
         {
             int symId = currentDisplayMatrix[col][row];
-            bool isBonus = (symId == bonusId);
-            bool isJackpot = (symId == jackpotId);
-            bool isWild = (symId == 11 || symId == 12); // Wild or MoonwalkWild
+            
+            // Check if it's a special symbol that needs animation
+            bool isBonus = (symId == bonusId || symId == 1013 || symId == 1014);
+            bool isJackpot = (symId == jackpotId || symId == 2013 || symId == 2014);
+            bool isWild = (symId == wildId || symId == 13 || symId == 14 || symId == 1013 || symId == 1014 || symId == 2013 || symId == 2014);
             
             if (isBonus || isWild || isJackpot)
             {
@@ -637,9 +648,7 @@ public class SlotView : MonoBehaviour
         if (imageAnim == null) return;
 
         int symbolId = currentDisplayMatrix[column][row];
-        if (symbolId < 0 || symbolId >= animationSpriteArrays.Length) return;
-
-        List<Sprite> animSprites = animationSpriteArrays[symbolId];
+        if (!animationSpriteMap.TryGetValue(symbolId, out List<Sprite> animSprites)) return;
         if (animSprites == null || animSprites.Count == 0) return;
 
         imageAnim.textureArray = animSprites;
@@ -861,7 +870,13 @@ public class SlotView : MonoBehaviour
         }
 
         int symbolId = currentDisplayMatrix[column][row];
-        bool isSpecialSymbol = (symbolId == 10 || symbolId == 11 || symbolId == 12 || symbolId == 13);
+        
+        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
+        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 11;
+        int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
+
+        bool isSpecialSymbol = (symbolId == bonusId || symbolId == jackpotId || symbolId == wildId ||
+                                symbolId == 13 || symbolId == 14 || symbolId == 1013 || symbolId == 1014 || symbolId == 2013 || symbolId == 2014);
 
         if (!isSpecialSymbol)
         {
@@ -888,16 +903,8 @@ public class SlotView : MonoBehaviour
 
         // symbolId is already acquired above
         
-        // Validate symbolId
-        if (symbolId < 0 || symbolId >= animationSpriteArrays.Length)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Invalid symbolId {symbolId} at col: {column}, row: {row}");
-            return;
-        }
-
-        // Get the animation sprite array for this symbol
-        List<Sprite> animSprites = animationSpriteArrays[symbolId];
-        if (animSprites == null || animSprites.Count == 0)
+        // Get the animation sprite array for this symbol from the map
+        if (!animationSpriteMap.TryGetValue(symbolId, out List<Sprite> animSprites) || animSprites == null || animSprites.Count == 0)
         {
             Debug.LogWarning($"[AnimateWinSymbol] No animation sprites for symbolId {symbolId} at col: {column}, row: {row}");
             return;
@@ -1067,9 +1074,10 @@ public class SlotView : MonoBehaviour
 
                     // Set the overlay image to the correct wild multiplier sprite
                     Image img = go.GetComponent<Image>();
-                    if (img != null && symbolSprites[11] != null)
+                    int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
+                    if (img != null && symbolSpritesMap.TryGetValue(wildId, out Sprite wildSprite))
                     {
-                        img.sprite = symbolSprites[11];
+                        img.sprite = wildSprite;
                     }
                 }
             }

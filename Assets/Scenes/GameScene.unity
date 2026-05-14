@@ -2973,7 +2973,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f521a04de7f494272a617b2719edd271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SocketIOManager
-  testToken: e7b8f0c476a445f88d191ef08aff8f91
+  testToken: 1db73c5d89184060894443af7c4f8055
   gameManager: {fileID: 32100144}
   uiManager: {fileID: 1159248010}
   popupManager: {fileID: 67106990}
@@ -4091,7 +4091,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: -699734271368286709, guid: d73a4ebaf169a40cbbd0a08423106930, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -4420,7 +4420,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &378125170
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5285,7 +5285,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: 1646720447909147354, guid: 5a4a406b970e24a0990d7d401105ca31, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -6159,7 +6159,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &540660006
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6238,7 +6238,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: 4534849320684321136, guid: c99996607d5074e5cb2c952256f8f02d, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -10792,7 +10792,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -12871,7 +12871,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -13573,7 +13573,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 38.888885, y: -28.8}
+  m_AnchoredPosition: {x: 38.88889, y: -28.8}
   m_SizeDelta: {x: 45, y: 45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1174138669
@@ -18946,7 +18946,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1646720447909147354, guid: 5a4a406b970e24a0990d7d401105ca31, type: 3}
+  m_Sprite: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -20226,7 +20226,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: 1646720447909147354, guid: 5a4a406b970e24a0990d7d401105ca31, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -20301,7 +20301,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  m_Sprite: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -22087,24 +22087,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SlotView
   gameManager: {fileID: 32100144}
-  spriteNine: {fileID: 6395461834085777833, guid: 12a7490daec89477692c7b57a04dbecd, type: 3}
-  spriteTen: {fileID: -5099292496197868168, guid: 948968ff249cb42c1b8ec2ff4ac18153, type: 3}
-  spriteJ: {fileID: -581286770295223724, guid: 09434857ed7e749d596649f60e289f68, type: 3}
-  spriteQ: {fileID: -3859272008004827343, guid: a4c282071e20d4d83b3ba90ae18ff198, type: 3}
-  spriteK: {fileID: 1646720447909147354, guid: 5a4a406b970e24a0990d7d401105ca31, type: 3}
-  spriteA: {fileID: 4251871941529161494, guid: 631a14098ab0044d398fd45fd45de2bd, type: 3}
-  spriteHat: {fileID: -1836120431684336037, guid: 9df168b20803741c58b01963b2a75890, type: 3}
-  spriteGlove: {fileID: -7516271193572666277, guid: 0df70ac279a8f4ac19a3a89fc2cd7b45, type: 3}
-  spriteShoes: {fileID: 7902364575885455685, guid: 7d3633ee0ea63410eb10e2232b33c75c, type: 3}
-  spriteMJ: {fileID: 163418858641059113, guid: f62f2bd1eaaa4413b8f4203a33aa0277, type: 3}
-  spriteJackpot: {fileID: -699734271368286709, guid: d73a4ebaf169a40cbbd0a08423106930, type: 3}
   spriteWild: {fileID: 3773449606348301056, guid: cc7b4df0122e14fd99ed1935594a4686, type: 3}
-  spriteMoonwalkWild: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  spriteGlove: {fileID: -7516271193572666277, guid: 0df70ac279a8f4ac19a3a89fc2cd7b45, type: 3}
+  spriteHat: {fileID: -1836120431684336037, guid: 9df168b20803741c58b01963b2a75890, type: 3}
+  spriteSunglasses: {fileID: 163418858641059113, guid: f62f2bd1eaaa4413b8f4203a33aa0277, type: 3}
+  spriteShoes: {fileID: 7902364575885455685, guid: 7d3633ee0ea63410eb10e2232b33c75c, type: 3}
+  spriteAce: {fileID: 4251871941529161494, guid: 631a14098ab0044d398fd45fd45de2bd, type: 3}
+  spriteKing: {fileID: 1646720447909147354, guid: 5a4a406b970e24a0990d7d401105ca31, type: 3}
+  spriteQueen: {fileID: -3859272008004827343, guid: a4c282071e20d4d83b3ba90ae18ff198, type: 3}
+  spriteJack: {fileID: -581286770295223724, guid: 09434857ed7e749d596649f60e289f68, type: 3}
+  spriteTen: {fileID: -5099292496197868168, guid: 948968ff249cb42c1b8ec2ff4ac18153, type: 3}
+  spriteNine: {fileID: 6395461834085777833, guid: 12a7490daec89477692c7b57a04dbecd, type: 3}
+  spriteJackpot: {fileID: -699734271368286709, guid: d73a4ebaf169a40cbbd0a08423106930, type: 3}
   spriteBonus: {fileID: -243188010235659028, guid: 17159468d99a64a488c6f2dca49f4ab7, type: 3}
-  animSpritesJackpot: []
+  spriteMoonwalkWild: {fileID: 8186726516681717604, guid: 5af86d15ef7854749a1b00d280dcb3b9, type: 3}
+  spriteMoonwalkWildBonus: {fileID: -7130797707151941326, guid: e062de1b4f6794cbabe5019e91781ae9, type: 3}
+  spriteMoonwalkWildJackpot: {fileID: 878950564654466988, guid: 6c3228b4a88fb4bb5999ed833ab07dce, type: 3}
+  spriteStackedWild: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
+  spriteStackedWildBonus: {fileID: -1939335569154457926, guid: 4acf48e4eeaaa47779aba1dc8298864a, type: 3}
+  spriteStackedWildJackpot: {fileID: 4534849320684321136, guid: c99996607d5074e5cb2c952256f8f02d, type: 3}
   animSpritesWild: []
-  animSpritesMoonwalkWild: []
+  animSpritesJackpot: []
   animSpritesBonus: []
+  animSpritesMoonwalkWild: []
+  animSpritesMoonwalkWildBonus: []
+  animSpritesMoonwalkWildJackpot: []
+  animSpritesStackedWild: []
+  animSpritesStackedWildBonus: []
+  animSpritesStackedWildJackpot: []
   reelTransforms:
   - {fileID: 1013925532}
   - {fileID: 302321613}
@@ -25897,7 +25907,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1939335569154457926, guid: 4acf48e4eeaaa47779aba1dc8298864a, type: 3}
+  m_Sprite: {fileID: -7966024376820708181, guid: 9881b028c3447469a82c44570db182f5, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1

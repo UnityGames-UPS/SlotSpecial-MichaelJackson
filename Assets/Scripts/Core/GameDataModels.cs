@@ -91,6 +91,15 @@ public class ServerSymbolInfo
     public string description;
     public List<double> multiplier;
     public List<double> scatterMultiplier;
+    public List<ServerSymbolVariant> variants;
+}
+
+[Serializable]
+public class ServerSymbolVariant
+{
+    public string type;
+    public bool isBonusSymbol;
+    public bool isJackpotSymbol;
 }
 
 [Serializable]
@@ -109,6 +118,7 @@ public class ServerSpinResponse
     public string id = "ResultData";
     public bool success;
     public List<List<string>> matrix;  // 3 rows x 5 cols at top level
+    public Dictionary<string, string> cellMetadata;
     public ServerSpinPayload payload;
     public ServerSpinFeatures features;
     public ServerPlayerBalance player;
@@ -259,17 +269,18 @@ public class GameConfig
 {
     public int reelCount = 5;
     public int rowCount = 3;
-    public int symbolCount = 14;
+    public int symbolCount = 15;
     public int paylineCount = 25;
     public List<List<int>> paylines;
     public List<double> availableBets;
     public List<SymbolInfo> symbols;
 
-    // Symbol ID configuration
-    public int wildSymbolId = 11;
-    public int moonwalkWildSymbolId = 12;
-    public int bonusSymbolId = 13;
-    public int jackpotSymbolId = 10;
+    // Symbol ID configuration (Updated to match new server IDs)
+    public int wildSymbolId = 0;
+    public int jackpotSymbolId = 11;
+    public int bonusSymbolId = 12;
+    public int moonwalkWildSymbolId = 13;
+    public int stackedWildSymbolId = 14;
 
     // Pay rules
     public string linePayDirection = "leftToRight";
@@ -290,6 +301,7 @@ public class SymbolInfo
     public List<double> scatterMultipliers;
     public bool isWild;
     public bool isMoonwalkWild;
+    public bool isStackedWild;
     public bool isBonus;
     public bool isJackpot;
 }
@@ -413,6 +425,7 @@ public static class InitDataConverter
                     scatterMultipliers = serverSymbol.scatterMultiplier ?? new List<double>(),
                     isWild = serverSymbol.name == "Wild",
                     isMoonwalkWild = serverSymbol.name == "MoonwalkWild",
+                    isStackedWild = serverSymbol.name == "StackedWild",
                     isBonus = serverSymbol.name == "Bonus",
                     isJackpot = serverSymbol.name == "Jackpot"
                 };
@@ -421,6 +434,7 @@ public static class InitDataConverter
 
                 if (symbolInfo.isWild) config.wildSymbolId = symbolInfo.id;
                 if (symbolInfo.isMoonwalkWild) config.moonwalkWildSymbolId = symbolInfo.id;
+                if (symbolInfo.isStackedWild) config.stackedWildSymbolId = symbolInfo.id;
                 if (symbolInfo.isBonus) config.bonusSymbolId = symbolInfo.id;
                 if (symbolInfo.isJackpot) config.jackpotSymbolId = symbolInfo.id;
             }
@@ -463,7 +477,7 @@ public static class InitDataConverter
 
         var result = new SpinResult
         {
-            resultMatrix = ConvertReelsToMatrix(serverResponse.matrix, gameConfig),
+            resultMatrix = ConvertReelsToMatrix(serverResponse.matrix, serverResponse.cellMetadata, gameConfig),
             winAmount = serverResponse.payload.currentWinning,
             winLines = ConvertLineWins(serverResponse.payload.lineWins, gameConfig),
 
@@ -514,8 +528,9 @@ public static class InitDataConverter
     /// <summary>
     /// Server sends matrix as 3 rows x 5 cols (string[][]).
     /// Client needs 5 cols x 3 rows (int[][]).
+    /// USES cellMetadata for variant ID mapping.
     /// </summary>
-    private static List<List<int>> ConvertReelsToMatrix(List<List<string>> serverMatrix, GameConfig gameConfig)
+    private static List<List<int>> ConvertReelsToMatrix(List<List<string>> serverMatrix, Dictionary<string, string> cellMetadata, GameConfig gameConfig)
     {
         if (serverMatrix == null || serverMatrix.Count != 3)
         {
@@ -539,12 +554,29 @@ public static class InitDataConverter
                 }
 
                 string symbolStr = serverMatrix[row][col];
+                string metadataKey = $"{row}:{col}";
+                
+                if (cellMetadata != null && cellMetadata.TryGetValue(metadataKey, out string variantType))
+                {
+                    symbolStr = variantType;
+                }
 
                 if (!int.TryParse(symbolStr, out int symbolId))
                 {
-                    UnityEngine.Debug.LogError($"Failed to parse symbol: {symbolStr}");
-                    column.Add(0);
-                    continue;
+                    // Handle variants by string name mapping to base IDs or internal variant IDs
+                    switch (symbolStr)
+                    {
+                        case "moonwild": symbolId = 13; break;
+                        case "moonwildbonus": symbolId = 1013; break;
+                        case "moonwildjackpot": symbolId = 2013; break;
+                        case "stwild": symbolId = 14; break;
+                        case "stwildbonus": symbolId = 1014; break;
+                        case "stwildjackpot": symbolId = 2014; break;
+                        default:
+                            UnityEngine.Debug.LogError($"Failed to parse symbol: {symbolStr}");
+                            symbolId = 0;
+                            break;
+                    }
                 }
 
                 column.Add(symbolId);

@@ -445,7 +445,7 @@ public class SocketIOManager : MonoBehaviour
             var column = new List<int>();
             for (int row = 0; row < 3; row++)
             {
-                column.Add(UnityEngine.Random.Range(0, 10)); // 0-9 regular symbols
+                column.Add(UnityEngine.Random.Range(1, 11)); // 1-10 regular symbols
             }
             matrix.Add(column);
         }
