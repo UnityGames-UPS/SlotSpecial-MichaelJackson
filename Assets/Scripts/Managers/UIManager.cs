@@ -182,9 +182,9 @@ public class UIManager : MonoBehaviour
         if (gameRulesPanel) gameRulesPanel.SetActive(false);
         if (winPopupPanel) winPopupPanel.SetActive(false);
         if (winRingObject) winRingObject.SetActive(false);
-
         if (freeSpinCountContainer) freeSpinCountContainer.SetActive(false);
         if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
+        if (wheelBonusPanel) wheelBonusPanel.gameObject.SetActive(false);
     }
 
 
@@ -895,8 +895,8 @@ public class UIManager : MonoBehaviour
         }
 
         wheelBonusPanel.gameObject.SetActive(true);
+        wheelBonusRect.localScale = Vector3.one;
         
-        // Simple scale in animation for the panel
         if (wheelBonusRect != null)
         {
             wheelBonusRect.localScale = Vector3.zero;

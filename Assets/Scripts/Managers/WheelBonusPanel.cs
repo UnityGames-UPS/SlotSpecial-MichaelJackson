@@ -39,7 +39,6 @@ public class WheelBonusPanel : MonoBehaviour
             spinButton.onClick.AddListener(OnSpinClicked);
         }
 
-        this.gameObject.SetActive(false);
     }
 
     private bool spinTriggered = false;
