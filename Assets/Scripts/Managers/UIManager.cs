@@ -531,7 +531,7 @@ public class UIManager : MonoBehaviour
 
         if (winPopupText)
         {
-            winPopupText.text = "0.00";
+            winPopupText.text = "0";
             float currentAnimVal = (float)startVal;
             DOTween.To(() => currentAnimVal, x => {
                 currentAnimVal = x;
@@ -543,10 +543,10 @@ public class UIManager : MonoBehaviour
 
                 // 2. Update popup text based on spin win amount
                 double currentPopupHit = progress * popupWinAmount;
-                winPopupText.text = currentPopupHit.ToString("F2");
+                winPopupText.text = currentPopupHit.ToString();
 
                 // 3. Update main UI displays based on authoritative round total
-                string formattedTotal = ((double)currentAnimVal).ToString("F2");
+                string formattedTotal = ((double)currentAnimVal).ToString();
                 if (winAmountText) winAmountText.text = formattedTotal;
                 
                 currentWinDisplayValue = (double)currentAnimVal;
@@ -600,7 +600,7 @@ public class UIManager : MonoBehaviour
         double totalBetAmount = gameManager.currentBetAmount * gameManager.gameConfig.paylineCount;
 
         if (betAmountText)
-            betAmountText.text = totalBetAmount.ToString("F2");
+            betAmountText.text = totalBetAmount.ToString();
         UpdateBetButtonStates();
     }
 
@@ -881,7 +881,7 @@ public class UIManager : MonoBehaviour
     internal void UpdateBalanceDisplay(double newBalance)
     {
         if (balanceText)
-            balanceText.text = newBalance.ToString("F4");
+            balanceText.text = newBalance.ToString();
     }
 
     #region Wheel Bonus
