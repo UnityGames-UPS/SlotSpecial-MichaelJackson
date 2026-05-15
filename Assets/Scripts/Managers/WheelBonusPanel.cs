@@ -235,13 +235,11 @@ public class WheelBonusPanel : MonoBehaviour
     {
         if (resultData.result.type == "credits")
         {
-            winAmountText.text = $"WIN: {resultData.creditAward:F3}";
+            winAmountText.text = $"{resultData.creditAward}";
         }
         else if (resultData.result.type == "multiplierWheel")
         {
-            double multiplier = resultData.multiplierResult ?? 1;
-            double finalWin = resultData.creditAward * multiplier;
-            winAmountText.text = $"WIN: {finalWin:F3}";
+             winAmountText.text = $"{resultData.creditAward}";
         }
         else if (resultData.result.type == "freeGames")
         {

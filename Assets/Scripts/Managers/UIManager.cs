@@ -881,7 +881,7 @@ public class UIManager : MonoBehaviour
     internal void UpdateBalanceDisplay(double newBalance)
     {
         if (balanceText)
-            balanceText.text = newBalance.ToString("F2");
+            balanceText.text = newBalance.ToString("F4");
     }
 
     #region Wheel Bonus
@@ -929,7 +929,19 @@ public class UIManager : MonoBehaviour
     {
         currentWinDisplayValue = amount;
         if (winAmountText)
-            winAmountText.text = amount.ToString("F2");
+            winAmountText.text = amount.ToString();
+    }
+
+    internal void AnimateWinDisplay(double targetAmount)
+    {
+        if (winTween != null) winTween.Kill();
+
+        double startVal = currentWinDisplayValue;
+        winTween = DOTween.To(() => startVal, x =>
+        {
+            startVal = x;
+            UpdateWinDisplay(x);
+        }, targetAmount, winCountDuration).SetEase(Ease.OutQuad);
     }
 
     private void SetBetControlsEnabled(bool enabled)

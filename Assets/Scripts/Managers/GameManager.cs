@@ -476,11 +476,18 @@ public class GameManager : MonoBehaviour
 
     private void OnWheelBonusComplete(ServerWheelBonusResult result)
     {
-        // 1. Update balance if credits awarded
-        if (result.creditAward > 0)
+        // 1. Update balance and win display using authoritative server data
+        if (lastResult != null)
         {
+            uiManager.UpdateBalanceDisplay(lastResult.playerData.balance);
+            uiManager.AnimateWinDisplay(lastResult.winAmount);
+        }
+        else if (result.creditAward > 0)
+        {
+            // Fallback if lastResult is somehow missing (should not happen in normal flow)
             playerData.balance += result.creditAward;
             uiManager.UpdateBalanceDisplay(playerData.balance);
+            uiManager.AnimateWinDisplay(result.creditAward);
         }
 
         // 2. Trigger free spins if awarded
