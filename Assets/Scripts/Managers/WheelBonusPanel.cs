@@ -15,8 +15,7 @@ public class WheelBonusPanel : MonoBehaviour
     [SerializeField] private GameObject mainWheelArrow;
     [SerializeField] private GameObject miniWheelArrow;
     [SerializeField] private TextMeshProUGUI winAmountText;
-    [SerializeField] private Button collectButton;
-    [SerializeField] private Button spinButton;
+    [SerializeField] private SwipeHandler swipeHandler;
     [SerializeField] private GameObject startInstructionArea;
 
     [Header("Settings")]
@@ -28,17 +27,18 @@ public class WheelBonusPanel : MonoBehaviour
 
     private void Awake()
     {
-        if (collectButton != null)
-        {
-            collectButton.onClick.AddListener(OnCollectClicked);
-            collectButton.gameObject.SetActive(false);
-        }
+     
 
-        if (spinButton != null)
+        if (swipeHandler != null)
         {
-            spinButton.onClick.AddListener(OnSpinClicked);
+            swipeHandler.OnSwipeDown.AddListener(OnSwipeDetected);
         }
+    }
 
+    private void OnSwipeDetected()
+    {
+        if (spinTriggered) return;
+        OnSpinClicked();
     }
 
     private bool spinTriggered = false;
@@ -46,7 +46,7 @@ public class WheelBonusPanel : MonoBehaviour
     private void OnSpinClicked()
     {
         spinTriggered = true;
-        if (spinButton != null) spinButton.gameObject.SetActive(false);
+        if (swipeHandler != null) swipeHandler.gameObject.SetActive(false);
         if (startInstructionArea != null) startInstructionArea.SetActive(false);
     }
 
@@ -120,12 +120,11 @@ public class WheelBonusPanel : MonoBehaviour
         }
 
         winAmountText.text = "";
-        collectButton.gameObject.SetActive(false);
         miniWheel.gameObject.SetActive(false);
         miniWheelArrow.SetActive(false);
 
         spinTriggered = false;
-        if (spinButton != null) spinButton.gameObject.SetActive(true);
+        if (swipeHandler != null) swipeHandler.gameObject.SetActive(true);
         if (startInstructionArea != null) startInstructionArea.SetActive(true);
     }
 
