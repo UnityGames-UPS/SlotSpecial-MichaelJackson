@@ -106,26 +106,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] private int popupBounceCount = 2;
     [SerializeField] private float freeSpinIntroDuration = 2f;
 
-    
-
-    private int selectedRounds = 10;
     private Tween balanceTween;
     private Tween winTween;
     private double totalFreeSpinWin = 0;
     private int totalFreeSpinsAwarded = 0;
-
     private int initialFreeSpins = 0;
-    private Coroutine maxBetCoroutine;
     private Coroutine winDisplayCoroutine;
-
     private int currentRulesPage = 0;
     private bool isPageAnimating;
-    [Header("UI State")]
-    private bool isSyncingToggles = false;
     private double currentWinDisplayValue = 0;
     private bool isSpecialWinActive = false;
-    public bool IsSpecialWinActive => isSpecialWinActive;
-    public System.Action OnSpecialWinComplete;
+    internal bool IsSpecialWinActive => isSpecialWinActive;
+    internal System.Action OnSpecialWinComplete;
 
     private Vector2 touchStartPos;
     private bool isSwiping;
@@ -162,7 +154,6 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         SetupButtons();
-        SetupAutoPlayPanel();
         SetupSettingsPanel();
         SetupGameRulesPanel();
         InitializeBackgrounds();
@@ -246,10 +237,7 @@ public class UIManager : MonoBehaviour
 
     }
 
-    private void SetupAutoPlayPanel()
-    {
-        // Panel removed, single button logic is in SetupButtons
-    }
+
 
     private void SetupSettingsPanel()
     {
@@ -327,13 +315,7 @@ public class UIManager : MonoBehaviour
 
     internal void TriggerBigWinPopupEarly(SpinResult result, System.Action onComplete = null)
     {
-        double totalBetAmount = gameManager.currentBetAmount;
-        if (gameManager.gameConfig != null)
-        {
-            totalBetAmount *= gameManager.gameConfig.paylineCount;
-        }
-        
-        // Always calculate multiplier for popup level based on the current result's winAmount
+        double totalBetAmount = gameManager.TotalBetAmount;
         double winAmount = result.winAmount;
         double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
@@ -362,12 +344,7 @@ public class UIManager : MonoBehaviour
                 UpdateWinDisplay(targetWin);
             }
             
-            double totalBetAmount = gameManager.currentBetAmount;
-            if (gameManager.gameConfig != null)
-            {
-                totalBetAmount *= gameManager.gameConfig.paylineCount;
-            }
-            double multiplier = totalBetAmount > 0 ? (result.winAmount / totalBetAmount) : 0;
+            double multiplier = gameManager.TotalBetAmount > 0 ? (result.winAmount / gameManager.TotalBetAmount) : 0;
 
             if (multiplier < 5 || !earlyBigWinPopupTriggered)
             {
@@ -418,12 +395,7 @@ public class UIManager : MonoBehaviour
         if (gameManager != null && gameManager.lastResult != null)
         {
             double winAmount = gameManager.lastResult.winAmount;
-            double totalBetAmount = gameManager.currentBetAmount;
-            if (gameManager.gameConfig != null)
-            {
-                totalBetAmount *= gameManager.gameConfig.paylineCount;
-            }
-            double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
+            double multiplier = gameManager.TotalBetAmount > 0 ? (winAmount / gameManager.TotalBetAmount) : 0;
             
             if (multiplier >= 5)
             {
@@ -465,24 +437,16 @@ public class UIManager : MonoBehaviour
     private IEnumerator ShowWinDisplayCoroutine(SpinResult result, System.Action onComplete = null)
     {
         double winAmount = result.winAmount;
-        double totalBetAmount = gameManager.currentBetAmount;
-        if (gameManager.gameConfig != null)
-        {
-            totalBetAmount *= gameManager.gameConfig.paylineCount;
-        }
-        
+        double totalBetAmount = gameManager.TotalBetAmount;
         double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
-        // --- Capping Logic ---
         double startVal = gameManager.isInFreeSpins ? currentWinDisplayValue : 0;
         double endVal = winAmount;
         double popupWinAmount = winAmount;
 
-        // --- Special Win Triggered ---
         isSpecialWinActive = true;
         DisableControlsDuringWinAnimation();
 
-        // Big Win Popup Logic — based on the spin's winAmount field
         AudioManager.Instance?.PlayWinOpeningJingle(multiplier);
         AudioManager.Instance?.PlayWinPopupBg(multiplier);
 
@@ -532,38 +496,31 @@ public class UIManager : MonoBehaviour
         if (winPopupText)
         {
             winPopupText.text = "0";
-            float currentAnimVal = (float)startVal;
+            double currentAnimVal = startVal;
             DOTween.To(() => currentAnimVal, x => {
                 currentAnimVal = x;
-                
-                // 1. Calculate progress from startVal to endVal
-                double range = endVal - startVal;
-                float progress = range > 0 ? (float)((currentAnimVal - startVal) / range) : 1f;
-                progress = Mathf.Clamp01(progress);
 
-                // 2. Update popup text based on spin win amount
-                double currentPopupHit = progress * popupWinAmount;
+                double range = endVal - startVal;
+                double progress = range > 0 ? Math.Max(0, Math.Min(1, (currentAnimVal - startVal) / range)) : 1.0;
+
+                double currentPopupHit = Math.Round(progress * popupWinAmount, 2);
                 winPopupText.text = currentPopupHit.ToString();
 
-                // 3. Update main UI displays based on authoritative round total
-                string formattedTotal = ((double)currentAnimVal).ToString();
-                if (winAmountText) winAmountText.text = formattedTotal;
-                
-                currentWinDisplayValue = (double)currentAnimVal;
-            }, (float)endVal, animDuration).SetEase(Ease.OutQuad);
+                double displayVal = Math.Round(currentAnimVal, 2);
+                if (winAmountText) winAmountText.text = displayVal.ToString();
+
+                currentWinDisplayValue = displayVal;
+            }, endVal, animDuration).SetEase(Ease.OutQuad);
         }
 
         yield return new WaitForSeconds(popupTime);
 
-        // Popup auto-closed — stop the looping BG
         AudioManager.Instance?.StopWinPopupBg();
 
         if (winPopupPanel) winPopupPanel.SetActive(false);
         if (winPopupImageAnimation) winPopupImageAnimation.StopAnimation();
         if (winRingObject) winRingObject.SetActive(false);
-   
 
-        // --- Reset Controls ---
         isSpecialWinActive = false;
         EnableControlsAfterWinAnimation();
         OnSpinCompleted(null);
@@ -597,7 +554,7 @@ public class UIManager : MonoBehaviour
     {
         if (gameManager.gameConfig == null) return;
 
-        double totalBetAmount = gameManager.currentBetAmount * gameManager.gameConfig.paylineCount;
+        double totalBetAmount = gameManager.TotalBetAmount;
 
         if (betAmountText)
             betAmountText.text = totalBetAmount.ToString();
@@ -663,11 +620,7 @@ public class UIManager : MonoBehaviour
         RefreshToggleBgAlpha(sfxToggle);
     }
 
-    private void RefreshAllToggleBgAlpha()
-    {
-        RefreshToggleBgAlpha(musicToggle);
-        RefreshToggleBgAlpha(sfxToggle);
-    }
+
 
     // Reads the background Image directly from Toggle.targetGraphic.
     // Sets alpha to 0 when the toggle is ON so the checkmark is not obscured,
@@ -799,7 +752,7 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    // (Buy Free Spin Panel Removed)
+
 
     #region Free Spins
 
@@ -856,7 +809,7 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
-    // Dynamic game rules and free spin popup helpers removed
+
 
     #region Cleanup
 

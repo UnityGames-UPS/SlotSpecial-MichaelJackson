@@ -96,17 +96,11 @@ public class PopupManager : MonoBehaviour
 
     #region 1. Disconnection Popup
 
-    /// <summary>
-    /// Show disconnection popup - triggered when max ping attempts fail
-    /// </summary>
     internal void ShowDisconnectionPopup()
     {
         ShowDisconnectionPopup("Game disconnected due to network error. Please relaunch the game.");
     }
 
-    /// <summary>
-    /// Show disconnection popup with custom message
-    /// </summary>
     internal void ShowDisconnectionPopup(string message)
     {
         if (disconnectionPopup == null) return;
@@ -141,41 +135,26 @@ public class PopupManager : MonoBehaviour
 
     #region 2. Error Popup
 
-    /// <summary>
-    /// Show error popup for insufficient funds
-    /// </summary>
     internal void ShowInsufficientFundsError()
     {
         ShowErrorPopup("Information", "Insufficient balance. Please add funds to continue.", false);
     }
 
-    /// <summary>
-    /// Show error popup for another device detected
-    /// </summary>
     internal void ShowAnotherDeviceError()
     {
         ShowErrorPopup("Warning", "Your account has been logged in from another device. This session will be closed.", true);
     }
 
-    /// <summary>
-    /// Show error popup for session expired
-    /// </summary>
     internal void ShowSessionExpiredError()
     {
         ShowErrorPopup("Warning", "Your session has expired. Please log in again.", true);
     }
 
-    /// <summary>
-    /// Show error popup for invalid auth token
-    /// </summary>
     internal void ShowInvalidAuthError()
     {
         ShowErrorPopup("Warning", "Invalid authentication token. Please log in again.", true);
     }
 
-    /// <summary>
-    /// Show error popup for server error
-    /// </summary>
     internal void ShowServerError(string message = "A server error occurred. Please try again later.")
     {
         ShowErrorPopup("Server Error", message, true);
@@ -236,11 +215,6 @@ public class PopupManager : MonoBehaviour
 
     #region 3. Reconnection Popup
 
-    /// <summary>
-    /// Show reconnection popup with current retry count
-    /// </summary>
-    /// <param name="currentTry">Current retry attempt (1-based)</param>
-    /// <param name="maxTries">Maximum retry attempts</param>
     internal void ShowReconnectionPopup(int currentTry, int maxTries)
     {
         if (reconnectionPopup == null) return;
@@ -271,10 +245,7 @@ public class PopupManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Close reconnection popup (called when reconnection succeeds)
-    /// </summary>
-    internal void CloseReconnectionPopup()
+    internal void HideReconnectionPopup()
     {
         if (reconnectionPopup == null || !reconnectionPopup.activeSelf) return;
 
@@ -295,22 +266,6 @@ public class PopupManager : MonoBehaviour
 
     #region 4. Loading Popup
 
-    /// <summary>
-    /// Show loading popup with default 5 second duration
-    /// </summary>
-    internal void ShowLoadingPopup()
-    {
-        ShowLoadingPopup(defaultLoadingDuration);
-    }
-
-    /// <summary>
-    /// Show loading popup with custom duration
-    /// </summary>
-    /// <param name="duration">Duration in seconds (0 = indefinite until manually closed)</param>
-    /// <summary>
-    /// Show loading popup with optional auto-close duration
-    /// </summary>
-    /// <param name="duration">Duration in seconds (-1 = use defaultLoadingDuration, 0 = indefinite)</param>
     internal void ShowLoadingPopup(float duration = -1f)
     {
         if (loadingPopup == null) return;
@@ -348,12 +303,6 @@ public class PopupManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Close loading popup manually
-    /// </summary>
-    /// <summary>
-    /// Close loading popup manually, respecting minimum duration
-    /// </summary>
     internal void CloseLoadingPopup(System.Action onComplete = null)
     {
         if (onComplete != null) onLoadingClosed += onComplete;

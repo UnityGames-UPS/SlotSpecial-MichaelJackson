@@ -50,7 +50,7 @@ public class WheelBonusPanel : MonoBehaviour
         if (startInstructionArea != null) startInstructionArea.SetActive(false);
     }
 
-    public void Setup(WheelBonusConfig config, ServerWheelBonusResult result, Action<ServerWheelBonusResult> onComplete)
+    internal void Setup(WheelBonusConfig config, ServerWheelBonusResult result, Action<ServerWheelBonusResult> onComplete)
     {
         this.config = config;
         this.resultData = result;
@@ -128,7 +128,7 @@ public class WheelBonusPanel : MonoBehaviour
         if (startInstructionArea != null) startInstructionArea.SetActive(true);
     }
 
-    public void StartBonus()
+    internal void StartBonus()
     {
         StartCoroutine(BonusSequence());
     }
@@ -232,13 +232,9 @@ public class WheelBonusPanel : MonoBehaviour
 
     private void ShowWinAmount()
     {
-        if (resultData.result.type == "credits")
+        if (resultData.result.type == "credits" || resultData.result.type == "multiplierWheel")
         {
             winAmountText.text = $"{resultData.creditAward}";
-        }
-        else if (resultData.result.type == "multiplierWheel")
-        {
-             winAmountText.text = $"{resultData.creditAward}";
         }
         else if (resultData.result.type == "freeGames")
         {

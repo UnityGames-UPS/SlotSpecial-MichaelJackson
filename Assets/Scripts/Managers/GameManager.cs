@@ -17,17 +17,18 @@ public class GameManager : MonoBehaviour
     internal PlayerData playerData;
     internal SpinResult lastResult;
 
-    internal GameState currentState;
+    private GameState currentState;
 
     internal int currentBetIndex;
     internal double currentBetAmount;
+    internal double TotalBetAmount => currentBetAmount * (gameConfig?.paylineCount ?? 1);
 
     internal bool isAutoPlaying;
 
     internal bool isInFreeSpins;
-    internal int freeSpinsRemaining;
-    internal int freeSpinsUsed;
-    internal bool waitingForFreeSpinStart;
+    private int freeSpinsRemaining;
+    private int freeSpinsUsed;
+    private bool waitingForFreeSpinStart;
 
     internal bool isInitialized;
     internal bool initializationFailed;
@@ -103,9 +104,7 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.Idle) return;
         if (!socketManager.isConnected) return;
 
-        // For now, total bet = bet per line * number of paylines
-        double totalBet = currentBetAmount * gameConfig.paylineCount;
-        if (!isInFreeSpins && playerData.balance < totalBet)
+        if (!isInFreeSpins && playerData.balance < TotalBetAmount)
         {
             if (popupManager != null)
             {
@@ -117,9 +116,6 @@ public class GameManager : MonoBehaviour
         StartSpin();
     }
 
-    /// <summary>
-    /// Called by the stop button to request early reel stop.
-    /// </summary>
     internal void RequestStopSpin()
     {
         if (currentState == GameState.Spinning && !isInFreeSpins)
@@ -128,19 +124,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Toggles autoplay on/off. Called by the autoplay button.
-    /// </summary>
     internal void ToggleAutoPlay()
     {
         if (isAutoPlaying)
-        {
             StopAutoPlay();
-        }
         else
-        {
             StartAutoPlay();
-        }
     }
 
     private void StartSpin()
@@ -214,8 +203,7 @@ public class GameManager : MonoBehaviour
 
         if (lastResult.winAmount > 0 && lastResult.winLines != null && lastResult.winLines.Count > 0)
         {
-            double totalBet = currentBetAmount * gameConfig.paylineCount;
-            double multiplier = totalBet > 0 ? (lastResult.winAmount / totalBet) : 0;
+            double multiplier = TotalBetAmount > 0 ? (lastResult.winAmount / TotalBetAmount) : 0;
 
             if (multiplier >= 5)
             {
@@ -244,8 +232,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator TriggerWinPopupWithDelay(float delay, SpinResult result)
     {
-        double totalBet = currentBetAmount * gameConfig.paylineCount;
-        double multiplier = totalBet > 0 ? (result.winAmount / totalBet) : 0;
+        double multiplier = TotalBetAmount > 0 ? (result.winAmount / TotalBetAmount) : 0;
 
         if (multiplier >= 5)
         {
@@ -275,10 +262,7 @@ public class GameManager : MonoBehaviour
     {
         if (lastResult != null)
         {
-            double totalBet = currentBetAmount * gameConfig.paylineCount;
-            double multiplier = totalBet > 0 ? (lastResult.winAmount / totalBet) : 0;
-
-            // Only update UI here if it wasn't already updated in OnReelsStoppedComplete (multiplier < 5)
+            double multiplier = TotalBetAmount > 0 ? (lastResult.winAmount / TotalBetAmount) : 0;
             if (multiplier >= 5)
             {
                 uiManager.OnSpinStopping(lastResult);
@@ -334,9 +318,7 @@ public class GameManager : MonoBehaviour
 
         if (isAutoPlaying && !isInFreeSpins)
         {
-            // Before requesting the next spin, verify the player can still afford it.
-            double totalBet = currentBetAmount * gameConfig.paylineCount;
-            if (playerData.balance < totalBet)
+            if (playerData.balance < TotalBetAmount)
             {
                 currentState = GameState.Idle;
                 StopAutoPlay();
@@ -374,9 +356,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.Idle) return;
 
-        // Check balance before starting
-        double totalBet = currentBetAmount * gameConfig.paylineCount;
-        if (playerData.balance < totalBet)
+        if (playerData.balance < TotalBetAmount)
         {
             if (popupManager != null) popupManager.ShowInsufficientFundsError();
             return;
@@ -542,8 +522,7 @@ public class GameManager : MonoBehaviour
 
     internal bool CanAffordBet()
     {
-        double totalBet = currentBetAmount * gameConfig.paylineCount;
-        return playerData.balance >= totalBet;
+        return playerData.balance >= TotalBetAmount;
     }
 
     internal bool IsSpinning()

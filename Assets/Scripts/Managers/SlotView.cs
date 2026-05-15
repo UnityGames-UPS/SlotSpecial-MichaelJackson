@@ -120,12 +120,11 @@ public class SlotView : MonoBehaviour
     private Coroutine winAnimationCoroutine;
 
 
-    internal List<List<int>> currentDisplayMatrix;
+    private List<List<int>> currentDisplayMatrix;
 
     private bool isSpinning;
     private bool scatterAnticipationActive = false;
 
-    // Sticky wild state persisted across spins during free spins
     private Dictionary<string, int> currentStickyWilds;
 
     #region Initialization
@@ -306,6 +305,24 @@ public class SlotView : MonoBehaviour
 
         Debug.LogWarning($"[SlotView] Invalid symbolId {symbolId}, using default sprite 0.");
         return symbolSpritesMap[0];
+    }
+
+    private bool IsBonusSymbol(int symId)
+    {
+        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
+        return symId == bonusId || symId == 1013 || symId == 1014;
+    }
+
+    private bool IsWildSymbol(int symId)
+    {
+        int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
+        return symId == wildId || symId == 13 || symId == 14 || symId == 1013 || symId == 1014 || symId == 2013 || symId == 2014;
+    }
+
+    private bool IsSpecialSymbol(int symId)
+    {
+        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 11;
+        return IsBonusSymbol(symId) || IsWildSymbol(symId) || symId == jackpotId;
     }
 
     #endregion
@@ -507,27 +524,20 @@ public class SlotView : MonoBehaviour
             0
         );
 
-        // ── Play reel-stop sound immediately when symbols lock in ──────────
         AudioManager.Instance?.PlayReelStop();
 
-        // Detect scatter / wild symbols in this column for hit sounds
         if (currentDisplayMatrix != null && columnIndex < currentDisplayMatrix.Count)
         {
-            int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
-            int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
-
             bool hasBonus = false;
             bool hasWild = false;
             foreach (int sym in currentDisplayMatrix[columnIndex])
             {
-                // Check base IDs and variant IDs
-                if (sym == bonusId || sym == 1013 || sym == 1014) hasBonus = true;
-                if (sym == wildId || sym == 13 || sym == 14 || sym == 1013 || sym == 1014 || sym == 2013 || sym == 2014) hasWild = true;
+                if (IsBonusSymbol(sym)) hasBonus = true;
+                if (IsWildSymbol(sym)) hasWild = true;
             }
             if (hasBonus) AudioManager.Instance?.PlayBonusHit();
             else if (hasWild) AudioManager.Instance?.PlayWildHit();
         }
-        // ──────────────────────────────────────────────────────────────────
 
         if (isQuickStop)
         {
@@ -607,21 +617,11 @@ public class SlotView : MonoBehaviour
     private void PlayStopAnimationsForColumn(int col)
     {
         if (currentDisplayMatrix == null || col >= currentDisplayMatrix.Count) return;
-        
-        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
-        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 11;
-        int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
-        
+
         for (int row = 0; row < currentDisplayMatrix[col].Count; row++)
         {
             int symId = currentDisplayMatrix[col][row];
-            
-            // Check if it's a special symbol that needs animation
-            bool isBonus = (symId == bonusId || symId == 1013 || symId == 1014);
-            bool isJackpot = (symId == jackpotId || symId == 2013 || symId == 2014);
-            bool isWild = (symId == wildId || symId == 13 || symId == 14 || symId == 1013 || symId == 1014 || symId == 2013 || symId == 2014);
-            
-            if (isBonus || isWild || isJackpot)
+            if (IsSpecialSymbol(symId))
             {
                 AnimateSymbolSingleLoop(col, row, 1);
             }
@@ -630,27 +630,44 @@ public class SlotView : MonoBehaviour
 
     private void AnimateSymbolSingleLoop(int column, int row, int loopCount = 1)
     {
-        if (column >= reelImagesList.Count) return;
+        if (!TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites))
+            return;
 
+        BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, loopCount, 0f);
+    }
+
+    private bool TryGetAnimationComponents(int column, int row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites)
+    {
+        symbolImage = null;
+        animGO = null;
+        imageAnim = null;
+        animSprites = null;
+
+        if (column >= reelImagesList.Count) return false;
         var reel = reelImagesList[column];
-        if (reel.images == null || reel.images.Count < 10) return;
+        if (reel.images == null || reel.images.Count < 10) return false;
 
         int imageIndex = 8 + row;
-        if (imageIndex >= reel.images.Count) return;
+        if (imageIndex >= reel.images.Count) return false;
 
-        Image symbolImage = reel.images[imageIndex];
-        if (symbolImage == null) return;
+        symbolImage = reel.images[imageIndex];
+        if (symbolImage == null) return false;
 
-        var animGO = WinBox(winAnimationColumns, column, row);
-        if (animGO == null) return;
+        animGO = WinBox(winAnimationColumns, column, row);
+        if (animGO == null) return false;
 
-        ImageAnimation imageAnim = animGO.GetComponent<ImageAnimation>();
-        if (imageAnim == null) return;
+        imageAnim = animGO.GetComponent<ImageAnimation>();
+        if (imageAnim == null) return false;
 
         int symbolId = currentDisplayMatrix[column][row];
-        if (!animationSpriteMap.TryGetValue(symbolId, out List<Sprite> animSprites)) return;
-        if (animSprites == null || animSprites.Count == 0) return;
+        if (!animationSpriteMap.TryGetValue(symbolId, out animSprites) || animSprites == null || animSprites.Count == 0)
+            return false;
 
+        return true;
+    }
+
+    private void BuildSymbolAnimationSequence(Image symbolImage, GameObject animGO, ImageAnimation imageAnim, List<Sprite> animSprites, int loopCount, float preDelay)
+    {
         imageAnim.textureArray = animSprites;
         imageAnim.useDynamicFramerate = true;
         imageAnim.dynamicLoopDuration = winSymbolLoopDuration;
@@ -658,7 +675,7 @@ public class SlotView : MonoBehaviour
         Color originalColor = new Color(symbolImage.color.r, symbolImage.color.g, symbolImage.color.b, 1f);
 
         Sequence seq = DOTween.Sequence();
-        
+
         seq.AppendCallback(() => {
             animGO.SetActive(true);
             Image animRenderer = imageAnim.rendererDelegate;
@@ -671,15 +688,22 @@ public class SlotView : MonoBehaviour
             }
             symbolImage.DOKill();
             symbolImage.DOFade(0f, 0.2f);
-            
-            imageAnim.StartAnimation();
         });
+
+        if (preDelay > 0)
+        {
+            seq.AppendInterval(preDelay);
+            seq.AppendCallback(() => imageAnim.StartAnimation());
+        }
+        else
+        {
+            seq.AppendCallback(() => imageAnim.StartAnimation());
+        }
 
         seq.AppendInterval(winSymbolLoopDuration * loopCount);
 
         seq.AppendCallback(() => {
             Image animRenderer = imageAnim != null ? imageAnim.rendererDelegate : null;
-
             if (animRenderer != null)
             {
                 animRenderer.DOKill();
@@ -835,141 +859,18 @@ public class SlotView : MonoBehaviour
 
     private void AnimateWinSymbol(int column, int row)
     {
-
-        if (column >= reelImagesList.Count)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Invalid column {column}, max is {reelImagesList.Count - 1}");
+        if (!TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites))
             return;
-        }
-
-        var reel = reelImagesList[column];
-        if (reel.images == null || reel.images.Count < 10)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Reel {column} has invalid images list");
-            return;
-        }
-
-        int imageIndex = 8 + row;
-        if (imageIndex >= reel.images.Count)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Image index {imageIndex} out of range for reel {column}");
-            return;
-        }
-
-        Image symbolImage = reel.images[imageIndex];
-        if (symbolImage == null)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Symbol image is NULL at col: {column}, row: {row}, imageIndex: {imageIndex}");
-            return;
-        }
-
-        if (column >= currentDisplayMatrix.Count || row >= currentDisplayMatrix[column].Count)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Invalid matrix position col: {column}, row: {row}");
-            return;
-        }
 
         int symbolId = currentDisplayMatrix[column][row];
-        
-        int bonusId = gameManager?.gameConfig != null ? gameManager.gameConfig.bonusSymbolId : 12;
-        int jackpotId = gameManager?.gameConfig != null ? gameManager.gameConfig.jackpotSymbolId : 11;
-        int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
-
-        bool isSpecialSymbol = (symbolId == bonusId || symbolId == jackpotId || symbolId == wildId ||
-                                symbolId == 13 || symbolId == 14 || symbolId == 1013 || symbolId == 1014 || symbolId == 2013 || symbolId == 2014);
-
-        if (!isSpecialSymbol)
+        if (!IsSpecialSymbol(symbolId))
         {
             symbolImage.DOKill();
             symbolImage.transform.localScale = Vector3.one;
             return;
         }
 
-        // Get the animation GameObject for this position
-        var animGO = WinBox(winAnimationColumns, column, row);
-        if (animGO == null)
-        {
-            Debug.LogError($"[AnimateWinSymbol] Animation GameObject is NULL at col: {column}, row: {row}");
-            return;
-        }
-
-        // Get the ImageAnimation component
-        ImageAnimation imageAnim = animGO.GetComponent<ImageAnimation>();
-        if (imageAnim == null)
-        {
-            Debug.LogError($"[AnimateWinSymbol] ImageAnimation component not found on animation object at col: {column}, row: {row}");
-            return;
-        }
-
-        // symbolId is already acquired above
-        
-        // Get the animation sprite array for this symbol from the map
-        if (!animationSpriteMap.TryGetValue(symbolId, out List<Sprite> animSprites) || animSprites == null || animSprites.Count == 0)
-        {
-            Debug.LogWarning($"[AnimateWinSymbol] No animation sprites for symbolId {symbolId} at col: {column}, row: {row}");
-            return;
-        }
-
-        // Set the sprite array on the ImageAnimation component
-        imageAnim.textureArray = animSprites;
-        imageAnim.useDynamicFramerate = true;
-        imageAnim.dynamicLoopDuration = winSymbolLoopDuration;
-
-        Color originalColor = new Color(symbolImage.color.r, symbolImage.color.g, symbolImage.color.b, 1f);
-
-        Sequence seq = DOTween.Sequence();
-        
-        seq.AppendCallback(() => {
-            animGO.SetActive(true);
-            Image animRenderer = imageAnim.rendererDelegate;
-            if (animRenderer != null)
-            {
-                animRenderer.DOKill();
-                Color c = animRenderer.color;
-                animRenderer.color = new Color(c.r, c.g, c.b, 0f);
-                animRenderer.DOFade(1f, 0.2f);
-            }
-            symbolImage.DOKill();
-            symbolImage.DOFade(0f, 0.2f);
-        });
-
-        if (winLineBoxToAnimationDelay > 0)
-        {
-            seq.AppendInterval(winLineBoxToAnimationDelay);
-        }
-
-        seq.AppendCallback(() => {
-            imageAnim.StartAnimation();
-        });
-
-        int loopCount = 1; // Play only once
-        seq.AppendInterval(winSymbolLoopDuration * loopCount);
-
-        seq.AppendCallback(() => {
-            Image animRenderer = imageAnim != null ? imageAnim.rendererDelegate : null;
-
-            if (animRenderer != null)
-            {
-                animRenderer.DOKill();
-                animRenderer.DOFade(0f, 0.2f).OnComplete(() => {
-                    if (imageAnim != null) imageAnim.StopAnimation();
-                    if (animGO != null) animGO.SetActive(false);
-                });
-            }
-            else
-            {
-                if (imageAnim != null) imageAnim.StopAnimation();
-                if (animGO != null) animGO.SetActive(false);
-            }
-
-            if (symbolImage != null)
-            {
-                symbolImage.DOKill();
-                symbolImage.DOFade(originalColor.a, 0.2f);
-            }
-        });
-
-        winTweens.Add(seq);
+        BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, 1, winLineBoxToAnimationDelay);
     }
 
     private void KillWinTweens(bool stopCoroutine = true)
@@ -1084,9 +985,6 @@ public class SlotView : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Clear sticky wild state — call when free spins end.
-    /// </summary>
     internal void ClearStickyWilds()
     {
         currentStickyWilds = null;

@@ -72,10 +72,7 @@ public class ImageAnimation : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        //rendererDelegate= this.GetComponent<Image>();
-    }
+    void Start() { }
 
     private void OnEnable()
     {
@@ -87,7 +84,6 @@ public class ImageAnimation : MonoBehaviour
 
     private void OnDisable()
     {
-        //rendererDelegate.sprite = textureArray[0];
         StopAnimation();
     }
 
@@ -275,14 +271,6 @@ public class ImageAnimation : MonoBehaviour
     private void SetTextureOfIndex()
     {
         if (textureArray == null || textureArray.Count == 0 || indexOfTexture < 0 || indexOfTexture >= textureArray.Count) return;
-
-        if (useSharedMaterial)
-        {
-            rendererDelegate.sprite = textureArray[indexOfTexture];
-        }
-        else
-        {
-            rendererDelegate.sprite = textureArray[indexOfTexture];
-        }
+        rendererDelegate.sprite = textureArray[indexOfTexture];
     }
 }

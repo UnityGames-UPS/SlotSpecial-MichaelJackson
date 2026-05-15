@@ -55,25 +55,22 @@ public class WheelSpinController : MonoBehaviour
     private bool isSpinning;
     private int currentTargetIndex = -1;
 
-    public bool IsSpinning => isSpinning;
-    public WheelType WheelType => wheelType;
-    public List<WheelSegmentData> SegmentDataList => segments;
+    internal bool IsSpinning => isSpinning;
+    internal WheelType WheelType => wheelType;
+    internal List<WheelSegmentData> SegmentDataList => segments;
 
     private void Awake()
     {
         Initialize(segments.Count);
     }
 
-    public void Initialize(int segmentCount)
+    internal void Initialize(int segmentCount)
     {
         if (segmentCount <= 0) return;
         segmentAngle = 360f / segmentCount;
     }
 
-    /// <summary>
-    /// Spins the wheel to a specific segment index.
-    /// </summary>
-    public void SpinToIndex(int targetIndex, Action onComplete = null)
+    internal void SpinToIndex(int targetIndex, Action onComplete = null)
     {
         if (isSpinning) return;
         StartCoroutine(SpinRoutine(targetIndex, onComplete));
@@ -128,13 +125,7 @@ public class WheelSpinController : MonoBehaviour
         onComplete?.Invoke();
     }
 
-    /// <summary>
-    /// Convenience method to find a segment by a predicate.
-    /// </summary>
-    public int FindSegmentIndex<T>(List<T> segments, Predicate<T> match)
-    {
-        return segments.FindIndex(match);
-    }
+
 
     private void OnDrawGizmos()
     {

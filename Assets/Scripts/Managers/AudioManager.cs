@@ -324,10 +324,8 @@ public class AudioManager : MonoBehaviour
         StopSource(winBgSource);
     }
 
-    internal void PlayWinByMultiplier(double multiplier)
-    {
-        PlayWinOpeningJingle(multiplier);
-    }
+
+
 
     internal void PlayWinLine()
     {

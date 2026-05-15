@@ -115,7 +115,12 @@ public class WheelSpinControllerEditor : Editor
             debugTargetIndex = EditorGUILayout.IntField("Target Index", debugTargetIndex);
             if (GUILayout.Button("Spin to Index"))
             {
-                ((WheelSpinController)target).SpinToIndex(debugTargetIndex);
+                var controller = (WheelSpinController)target;
+                var method = typeof(WheelSpinController).GetMethod("SpinToIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null)
+                {
+                    method.Invoke(controller, new object[] { debugTargetIndex, null });
+                }
             }
         }
 

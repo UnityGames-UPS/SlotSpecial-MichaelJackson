@@ -141,7 +141,7 @@ public class SocketIOManager : MonoBehaviour
 
         if (popupManager != null)
         {
-            popupManager.CloseReconnectionPopup();
+            popupManager.HideReconnectionPopup();
         }
 
         StartPingRoutine();
@@ -361,7 +361,7 @@ public class SocketIOManager : MonoBehaviour
 
             if (popupManager != null)
             {
-                popupManager.CloseReconnectionPopup();
+                popupManager.HideReconnectionPopup();
             }
         }
     }
