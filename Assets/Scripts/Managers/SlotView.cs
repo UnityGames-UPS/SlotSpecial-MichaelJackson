@@ -125,7 +125,12 @@ public class SlotView : MonoBehaviour
     private bool isSpinning;
     private bool scatterAnticipationActive = false;
 
+    // Stores the accumulated sticky wild positions keyed as "row_col" -> symbolId
     private Dictionary<string, int> currentStickyWilds;
+
+    // How many seconds before the last reel stops to reveal newly-added sticky wilds
+    [Header("BeatIt Sticky Wild Settings")]
+    [SerializeField] private float newStickyWildPreRevealTime = 1.2f;
 
     #region Initialization
 
@@ -339,12 +344,11 @@ public class SlotView : MonoBehaviour
 
         DisableAllOverlays();
 
-        // Re-enable sticky wilds so they stay visible during the spin
+        // Re-enable OLD sticky wilds immediately so they remain visible while reels spin
         if (currentStickyWilds != null && currentStickyWilds.Count > 0)
         {
             ApplyStickyWilds(currentStickyWilds);
         }
-
 
         for (int i = 0; i < reelCycleCount.Count; i++)
         {
@@ -447,54 +451,197 @@ public class SlotView : MonoBehaviour
 
         var currentResult = gameManager.lastResult;
 
+        // ---- Wait until minimum spin cycles are complete ----
         while (true)
         {
             bool allReelsReady = true;
             for (int col = 0; col < 5; col++)
             {
-                int requiredCycles = minSpinCyclesBeforeStop;
-
-                if (reelCycleCount[col] < requiredCycles)
+                if (reelCycleCount[col] < minSpinCyclesBeforeStop)
                 {
                     allReelsReady = false;
                     break;
                 }
             }
-
             if (allReelsReady) break;
             yield return null;
         }
 
         float stagger = isQuickStop ? quickStopStagger : reelStopStagger;
 
+        // longestStopTime = time from the moment StopSingleReel coroutines start until
+        // the last reel finishes its settle animation.
+        float longestStopTime;
+        if (isQuickStop)
+            longestStopTime = (4 * stagger) + quickStopDuration;
+        else
+            longestStopTime = (4 * stagger) + stopOvershootDuration + stopBounceBackDuration;
+
+        // ---- BeatIt sticky wild pre-reveal ----
+        // For beatIt free games: newly added sticky wilds appear ~1.2s before the last
+        // reel stops so the player sees them "snap in" before the reels settle.
+        bool isBeatIt = currentResult?.freeGameData != null &&
+                        currentResult.freeGameData.gameType == "beatIt";
+
+        if (isBeatIt && !isQuickStop)
+        {
+            var newPositions = currentResult.freeGameData.stickyWildPositions;
+            if (newPositions != null && newPositions.Count > 0)
+            {
+                // Build the set of newly-added positions (not present in the previous spin)
+                var newlyAdded = GetNewStickyWildPositions(newPositions);
+
+                if (newlyAdded != null && newlyAdded.Count > 0)
+                {
+                    // Delay = total stop time minus pre-reveal window, clamped to >= 0
+                    float preRevealDelay = Mathf.Max(0f, longestStopTime - newStickyWildPreRevealTime);
+                    StartCoroutine(RevealNewStickyWildsAfterDelay(preRevealDelay, newlyAdded));
+                }
+            }
+        }
+
+        // ---- SmoothCriminal wild pre-reveal ----
+        // SmoothCriminal has no server-side stickyWildPositions. Instead, the server
+        // fills entire reel columns with wild (ID 0) each spin. We detect those
+        // all-wild columns from the result matrix and flash the stickyWild overlay
+        // ~1.2s early so the player "sees" the wild land before the reel settles.
+        // The overlay is cleared once the reel stops — the actual reel sprite takes over.
+        bool isSmoothCriminal = currentResult?.freeGameData != null &&
+                                currentResult.freeGameData.gameType == "smoothCriminal";
+
+        if (isSmoothCriminal && !isQuickStop)
+        {
+            var wildCols = GetSmoothCriminalWildPositions(resultMatrix);
+            if (wildCols != null && wildCols.Count > 0)
+            {
+                float preRevealDelay = Mathf.Max(0f, longestStopTime - newStickyWildPreRevealTime);
+                StartCoroutine(RevealNewStickyWildsAfterDelay(preRevealDelay, wildCols));
+            }
+        }
+
+        // ---- Start stopping each reel ----
         for (int col = 0; col < 5; col++)
         {
             float delay = col * stagger;
             StartCoroutine(StopSingleReel(col, resultMatrix[col], delay, isQuickStop));
         }
 
-        float longestStopTime;
-        if (isQuickStop)
-        {
-            longestStopTime = (4 * stagger) + quickStopDuration;
-        }
-        else
-        {
-            longestStopTime = (4 * stagger) + stopOvershootDuration + stopBounceBackDuration;
-        }
-
         yield return new WaitForSeconds(longestStopTime);
+
+        // ---- Reels have landed — hide all sticky wild overlays ----
+        // beatIt: re-applies them below with the authoritative set.
+        // smoothCriminal: leaves them off — actual reel sprites are now visible.
+        DisableColumns(stickyWildColumns);
 
         isSpinning = false;
         scatterAnticipationActive = false;
 
-
-        if (currentResult != null)
+        // ---- beatIt: persist and re-apply the full updated sticky wild set ----
+        if (isBeatIt && currentResult?.freeGameData?.stickyWildPositions != null)
         {
-            // Future sticky wild implementation can go here
+            UpdateStickyWildsFromResult(currentResult.freeGameData.stickyWildPositions);
+            ApplyStickyWilds(currentStickyWilds);
         }
 
         onComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// Returns the subset of incoming sticky wild positions that are NEW
+    /// (i.e., not already present in currentStickyWilds).
+    /// Server positions are [row, col] pairs.
+    /// </summary>
+    private Dictionary<string, int> GetNewStickyWildPositions(List<List<int>> incomingPositions)
+    {
+        var result = new Dictionary<string, int>();
+        if (incomingPositions == null) return result;
+
+        foreach (var pos in incomingPositions)
+        {
+            if (pos == null || pos.Count < 2) continue;
+            int row = pos[0];
+            int col = pos[1];
+            string key = $"{row}_{col}";
+
+            // Only include if NOT already in the current (old) sticky wilds
+            if (currentStickyWilds == null || !currentStickyWilds.ContainsKey(key))
+            {
+                result[key] = gameManager?.gameConfig?.wildSymbolId ?? 0;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// For smoothCriminal free spins, scans the result matrix for columns where
+    /// ALL 3 rows are the wild symbol and returns their positions for overlay display.
+    /// Matrix format: [col][row], 5 cols x 3 rows.
+    /// </summary>
+    private Dictionary<string, int> GetSmoothCriminalWildPositions(List<List<int>> matrix)
+    {
+        var result = new Dictionary<string, int>();
+        if (matrix == null) return result;
+
+        int wildId = gameManager?.gameConfig?.wildSymbolId ?? 0;
+
+        for (int col = 0; col < matrix.Count; col++)
+        {
+            var column = matrix[col];
+            if (column == null || column.Count < 3) continue;
+
+            // Only apply overlay when the entire column is wild
+            bool allWild = true;
+            for (int row = 0; row < column.Count; row++)
+            {
+                if (column[row] != wildId) { allWild = false; break; }
+            }
+
+            if (allWild)
+            {
+                for (int row = 0; row < column.Count; row++)
+                {
+                    result[$"{row}_{col}"] = wildId;
+                }
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Waits for a delay then reveals newly-added sticky wild overlays
+    /// while the reels are still spinning (pre-stop reveal).
+    /// </summary>
+    private IEnumerator RevealNewStickyWildsAfterDelay(float delay, Dictionary<string, int> newPositions)
+    {
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+
+        // Only reveal if we're still in the stopping phase (guard against quick-stop race)
+        ApplyStickyWilds(newPositions);
+    }
+
+    /// <summary>
+    /// Builds/updates currentStickyWilds from the authoritative server position list.
+    /// Server sends positions as [[row, col], [row, col], ...].
+    /// </summary>
+    private void UpdateStickyWildsFromResult(List<List<int>> positions)
+    {
+        if (positions == null || positions.Count == 0)
+        {
+            currentStickyWilds = null;
+            return;
+        }
+
+        currentStickyWilds = new Dictionary<string, int>();
+        int wildId = gameManager?.gameConfig?.wildSymbolId ?? 0;
+
+        foreach (var pos in positions)
+        {
+            if (pos == null || pos.Count < 2) continue;
+            int row = pos[0];
+            int col = pos[1];
+            currentStickyWilds[$"{row}_{col}"] = wildId;
+        }
     }
 
     private IEnumerator StopSingleReel(int columnIndex, List<int> targetSymbols, float delay, bool isQuickStop)
