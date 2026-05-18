@@ -957,20 +957,17 @@ public class SlotView : MonoBehaviour
     private void EnableWinBox(int col, int row)
     {
         var go = WinBox(winBoxColumns, col, row);
-        if (go)
+        if (go != null)
         {
             go.SetActive(true);
         }
-        else
-        {
-            Debug.LogError($"[EnableWinBox] WinBox GameObject is NULL at col: {col}, row: {row}");
-        }
+ 
     }
 
     private void DisableWinBox(int col, int row)
     {
         var go = WinBox(winBoxColumns, col, row);
-        if (go) go.SetActive(false);
+        if (go != null) go.SetActive(false);
     }
 
     private void ResetSymbolScale(int col, int row)

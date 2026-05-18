@@ -109,6 +109,7 @@ public class UIManager : MonoBehaviour
     private Tween balanceTween;
     private Tween winTween;
     private double totalFreeSpinWin = 0;
+    private double currentDisplayedBalance = 0;
     private int totalFreeSpinsAwarded = 0;
     private int initialFreeSpins = 0;
     private Coroutine winDisplayCoroutine;
@@ -273,6 +274,8 @@ public class UIManager : MonoBehaviour
     internal void OnGameInitialized()
     {
         currentWinDisplayValue = 0;
+        currentDisplayedBalance = gameManager.playerData.balance;
+        if (balanceText) balanceText.text = FormatBalance(currentDisplayedBalance);
         UpdateBetDisplay();
     }
 
@@ -309,6 +312,12 @@ public class UIManager : MonoBehaviour
         if (winRingObject) winRingObject.SetActive(false);
         isSpecialWinActive = false;
 
+        // Immediately deduct the total bet from the displayed balance when spin is pressed
+        if (!gameManager.isInFreeSpins)
+        {
+            currentDisplayedBalance -= gameManager.TotalBetAmount;
+            if (balanceText) balanceText.text = FormatBalance(currentDisplayedBalance);
+        }
     }
 
     private bool earlyBigWinPopupTriggered = false;
@@ -833,8 +842,36 @@ public class UIManager : MonoBehaviour
     #endregion
     internal void UpdateBalanceDisplay(double newBalance)
     {
-        if (balanceText)
-            balanceText.text = newBalance.ToString();
+        if (balanceTween != null) balanceTween.Kill();
+
+        double fromBalance = currentDisplayedBalance;
+
+        // If the server balance matches what we already show (no win, no difference),
+        // just sync quietly without animation.
+        if (System.Math.Abs(newBalance - fromBalance) < 0.0001)
+        {
+            currentDisplayedBalance = newBalance;
+            if (balanceText) balanceText.text = FormatBalance(newBalance);
+            return;
+        }
+
+        // Animate from the current displayed value to the server-authoritative balance.
+        double animFrom = fromBalance;
+        balanceTween = DOTween.To(
+            () => animFrom,
+            x =>
+            {
+                animFrom = x;
+                currentDisplayedBalance = x;
+                if (balanceText) balanceText.text = FormatBalance(x);
+            },
+            newBalance,
+            balanceCountDuration
+        ).SetEase(Ease.OutQuad).OnComplete(() =>
+        {
+            currentDisplayedBalance = newBalance;
+            if (balanceText) balanceText.text = FormatBalance(newBalance);
+        });
     }
 
     #region Wheel Bonus
@@ -903,12 +940,14 @@ public class UIManager : MonoBehaviour
         if (betMinusButton) betMinusButton.interactable = enabled;
         if (autoPlayButton) autoPlayButton.interactable = enabled;
     }
-}
 
-[System.Serializable]
-public class RoundButton
-{
-    public Button button;
-    public int rounds;
-    public GameObject selectedIndicator;
+    /// <summary>
+    /// Formats a balance value: shows up to 3 decimal places,
+    /// but drops trailing zeros and the decimal point for whole numbers.
+    /// Examples: 63706.116 → "63706.116", 1000.0 → "1000", 0.025 → "0.025"
+    /// </summary>
+    private static string FormatBalance(double value)
+    {
+        return System.Math.Round(value, 3).ToString("0.###");
+    }
 }

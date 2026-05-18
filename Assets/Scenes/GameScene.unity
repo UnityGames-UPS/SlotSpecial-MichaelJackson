@@ -3342,7 +3342,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f521a04de7f494272a617b2719edd271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SocketIOManager
-  testToken: 322aba4b194548a99e78cbb3690fd5bd
+  testToken: cbb14ec2497d4e2fa5752f364106aed0
   gameManager: {fileID: 32100144}
   uiManager: {fileID: 1159248010}
   popupManager: {fileID: 67106990}
@@ -9722,7 +9722,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &763355692
 RectTransform:
   m_ObjectHideFlags: 0
@@ -22917,7 +22917,7 @@ MonoBehaviour:
   OnSwipeDown:
     m_PersistentCalls:
       m_Calls: []
-  minSwipeDistance: 50
+  minSwipeDistance: 250
 --- !u!114 &1725851538
 MonoBehaviour:
   m_ObjectHideFlags: 0

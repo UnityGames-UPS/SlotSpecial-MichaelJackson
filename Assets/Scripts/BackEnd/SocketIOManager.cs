@@ -36,7 +36,7 @@ public class SocketIOManager : MonoBehaviour
     private float lastPongTime;
     private bool waitingForPong;
     private int missedPongs;
-    private const int MAX_MISSED_PONGS = 5;
+    private const int MAX_MISSED_PONGS = 15;
     private const float PING_INTERVAL = 2f;
     private const float PONG_TIMEOUT = 5f;
 
@@ -154,7 +154,7 @@ public class SocketIOManager : MonoBehaviour
         isConnected = false;
         StopPingRoutine();
 
-        if (isExiting)
+        if (isExiting)  
         {
             if (popupManager != null)
             {
