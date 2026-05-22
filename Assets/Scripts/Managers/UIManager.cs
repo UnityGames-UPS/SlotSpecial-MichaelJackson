@@ -73,23 +73,19 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject[] rulePageIndicators;
 
     [Header("Game Rules Dynamic Texts")]
-    [SerializeField] private TMP_Text[] ruleBetMultiplierTexts; // 2 texts
-    [SerializeField] private TMP_Text[] ruleMinWinMultiplierTexts; // 2 fields
-    [SerializeField] private TMP_Text[] ruleMaxWinMultiplierTexts; // 2 fields
-    [SerializeField] private TMP_Text ruleSymbol0Text;
-    [SerializeField] private TMP_Text ruleSymbol1Text;
-    [SerializeField] private TMP_Text ruleSymbol2Text;
-    [SerializeField] private TMP_Text ruleSymbol3Text;
-    [SerializeField] private TMP_Text ruleSymbol4Text;
-    [SerializeField] private TMP_Text ruleSymbol5Text;
-    [SerializeField] private TMP_Text ruleSymbol6Text;
-    [SerializeField] private TMP_Text ruleSymbol7Text;
-    [SerializeField] private TMP_Text ruleSymbol8Text;
-    [SerializeField] private TMP_Text ruleSymbol9Text;
-    [SerializeField] private TMP_Text ruleSymbol10Text;
-    [SerializeField] private TMP_Text[] ruleFreeSpinInitialTexts; // 2 texts
-    [SerializeField] private TMP_Text[] ruleFreeSpinExtraTexts; // 4 texts for 2, 3, 4, 5
-
+    [SerializeField] private TMP_Text wildMultiplierText;
+    [SerializeField] private TMP_Text gloveMultiplierText;
+    [SerializeField] private TMP_Text hatMultiplierText;
+    [SerializeField] private TMP_Text sunglassesMultiplierText;
+    [SerializeField] private TMP_Text shoesMultiplierText;
+    [SerializeField] private TMP_Text aceMultiplierText;
+    [SerializeField] private TMP_Text kingMultiplierText;
+    [SerializeField] private TMP_Text queenMultiplierText;
+    [SerializeField] private TMP_Text jackMultiplierText;
+    [SerializeField] private TMP_Text tenMultiplierText;
+    [SerializeField] private TMP_Text nineMultiplierText;
+    [SerializeField] private TMP_Text jackpotMultiplierText;
+    [SerializeField] private TMP_Text bonusMultiplierText;
     [Header("Free Spin Count Display - Game Screen")]
     [SerializeField] private GameObject freeSpinCountContainer;
     [SerializeField] private TMP_Text freeSpinCountText;
@@ -277,6 +273,56 @@ public class UIManager : MonoBehaviour
         currentDisplayedBalance = gameManager.playerData.balance;
         if (balanceText) balanceText.text = FormatBalance(currentDisplayedBalance);
         UpdateBetDisplay();
+        UpdateGameRulesPaytable(gameManager.gameConfig);
+    }
+
+    private void UpdateGameRulesPaytable(GameConfig config)
+    {
+        if (config == null || config.symbols == null) return;
+
+        foreach (var symbolInfo in config.symbols)
+        {
+            var mults = (symbolInfo.scatterMultipliers != null && symbolInfo.scatterMultipliers.Count > 0) 
+                        ? symbolInfo.scatterMultipliers 
+                        : symbolInfo.multipliers;
+
+            if (mults != null && mults.Count > 0)
+            {
+                List<string> displayLines = new List<string>();
+                int currentMatchCount = 5;
+                
+                for (int i = 0; i < mults.Count; i++)
+                {
+                    if (mults[i] > 0)
+                    {
+                        displayLines.Add($"{currentMatchCount}  {mults[i]}x");
+                    }
+                    currentMatchCount--;
+                }
+                
+                if (displayLines.Count > 0)
+                {
+                    string textValue = string.Join("\n", displayLines);
+                    
+                    switch (symbolInfo.id)
+                    {
+                        case 0: if (wildMultiplierText) wildMultiplierText.text = textValue; break;
+                        case 1: if (gloveMultiplierText) gloveMultiplierText.text = textValue; break;
+                        case 2: if (hatMultiplierText) hatMultiplierText.text = textValue; break;
+                        case 3: if (sunglassesMultiplierText) sunglassesMultiplierText.text = textValue; break;
+                        case 4: if (shoesMultiplierText) shoesMultiplierText.text = textValue; break;
+                        case 5: if (aceMultiplierText) aceMultiplierText.text = textValue; break;
+                        case 6: if (kingMultiplierText) kingMultiplierText.text = textValue; break;
+                        case 7: if (queenMultiplierText) queenMultiplierText.text = textValue; break;
+                        case 8: if (jackMultiplierText) jackMultiplierText.text = textValue; break;
+                        case 9: if (tenMultiplierText) tenMultiplierText.text = textValue; break;
+                        case 10: if (nineMultiplierText) nineMultiplierText.text = textValue; break;
+                        case 11: if (jackpotMultiplierText) jackpotMultiplierText.text = textValue; break;
+                        case 12: if (bonusMultiplierText) bonusMultiplierText.text = textValue; break;  
+                    }
+                }
+            }
+        }
     }
 
     internal void OnSpinStarted()

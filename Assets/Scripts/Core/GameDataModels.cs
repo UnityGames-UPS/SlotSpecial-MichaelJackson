@@ -16,6 +16,7 @@ public class InitData
     public ServerGameData gameData;
     public ServerFeatures features;
     public ServerPlayer player;
+    public ServerUIData uiData;
 }
 
 [Serializable]
@@ -35,7 +36,6 @@ public class ServerFeatures
     public FeatureDescription beatItFreeGames;
     public FeatureDescription smoothCriminalFreeGames;
     public PayRulesData payRules;
-    public ServerUIData uiData;
 }
 
 [Serializable]
@@ -181,6 +181,7 @@ public class ServerFreeGameResult
     public string gameType;  // "beatIt" or "smoothCriminal" or null
     public List<List<int>> stickyWildPositions;
     public int currentGameIndex;
+    public double totalRoundWin;
 }
 
 [Serializable]
@@ -392,6 +393,7 @@ public class FreeGameData
     public string gameType;  // "beatIt" or "smoothCriminal"
     public List<List<int>> stickyWildPositions;
     public int currentGameIndex;
+    public double totalRoundWin;
 }
 
 #endregion
@@ -435,16 +437,16 @@ public static class InitDataConverter
         {
             reelCount = 5,
             rowCount = 3,
-            symbolCount = serverData.features?.uiData?.paylines?.symbols?.Count ?? 14,
+            symbolCount = serverData.uiData?.paylines?.symbols?.Count ?? 14,
             paylineCount = serverData.gameData.lines?.Count ?? 25,
             paylines = serverData.gameData.lines,
             availableBets = serverData.gameData.bets,
             symbols = new List<SymbolInfo>()
         };
 
-        if (serverData.features?.uiData?.paylines?.symbols != null)
+        if (serverData.uiData?.paylines?.symbols != null)
         {
-            foreach (var serverSymbol in serverData.features.uiData.paylines.symbols)
+            foreach (var serverSymbol in serverData.uiData.paylines.symbols)
             {
                 var symbolInfo = new SymbolInfo
                 {
@@ -537,7 +539,8 @@ public static class InitDataConverter
                     freeGameAdded = serverResponse.features.freeGame.freeGameAdded,
                     gameType = serverResponse.features.freeGame.gameType,
                     stickyWildPositions = serverResponse.features.freeGame.stickyWildPositions,
-                    currentGameIndex = serverResponse.features.freeGame.currentGameIndex
+                    currentGameIndex = serverResponse.features.freeGame.currentGameIndex,
+                    totalRoundWin = serverResponse.features.freeGame.totalRoundWin
                 }
                 : null,
 
