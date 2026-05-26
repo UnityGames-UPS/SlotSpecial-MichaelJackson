@@ -208,7 +208,7 @@ public class AudioManager : MonoBehaviour
         PlayOneShot(uiSource, clipMaxBet);
     }
 
-    internal void PlayBuyFreeSpinOpen()
+  /*  internal void PlayBuyFreeSpinOpen()
     {
         if (!_sfxEnabled) return;
         PlayOneShot(uiSource, clipBuyFreeSpinOpen);
@@ -225,7 +225,7 @@ public class AudioManager : MonoBehaviour
         if (!_sfxEnabled) return;
         PlayOneShot(uiSource, clipBuyBetPlusMinus);
     }
-
+*/
 
 
     internal void PlaySpinStart()
@@ -261,7 +261,7 @@ public class AudioManager : MonoBehaviour
         PlayOneShot(specialSource, clipWildHit);
     }
 
-    internal void PlayFreeSpinPopup()
+  /*  internal void PlayFreeSpinPopup()
     {
         if (!_sfxEnabled) return;
         PlayOneShot(specialSource, clipFreeSpinPopup);
@@ -277,7 +277,7 @@ public class AudioManager : MonoBehaviour
     {
         if (!_sfxEnabled) return;
         PlayOneShot(specialSource, clipFreeSpinTotalWin);
-    }
+    }*/
 
     internal void PlayWinNormal()
     {

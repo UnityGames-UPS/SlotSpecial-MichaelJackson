@@ -4,10 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 #region Server Communication Models
-
-// ============================================================================
-// Server Init Data — matches game:init JSON
-// ============================================================================
+    
 
 [Serializable]
 public class InitData
