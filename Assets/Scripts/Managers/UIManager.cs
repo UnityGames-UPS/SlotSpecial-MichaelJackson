@@ -48,6 +48,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Auto Play Panel")]
     [SerializeField] private Button autoPlayButton;
+    [SerializeField] private Transform autoPlayRotateObject;
     [SerializeField] private Button gameQuitButton;
 
 
@@ -101,6 +102,7 @@ public class UIManager : MonoBehaviour
 
     private Tween balanceTween;
     private Tween winTween;
+    private Tween autoPlayRotationTween;
     private double totalFreeSpinWin = 0;
     private double currentDisplayedBalance = 0;
     private int totalFreeSpinsAwarded = 0;
@@ -338,7 +340,7 @@ public class UIManager : MonoBehaviour
             if (stopButton) stopButton.interactable = true;
         }
 
-        if (autoPlayButton) autoPlayButton.interactable = false;
+        if (autoPlayButton) autoPlayButton.interactable = gameManager.isAutoPlaying;
 
         AudioManager.Instance?.StopWinPopupBg();
 
@@ -666,10 +668,28 @@ public class UIManager : MonoBehaviour
         if (spinButton) spinButton.gameObject.SetActive(false);
         if (stopButton) stopButton.gameObject.SetActive(true);
         SetBetControlsEnabled(false);
+
+        if (autoPlayRotateObject != null)
+        {
+            if (autoPlayRotationTween != null) autoPlayRotationTween.Kill();
+            autoPlayRotationTween = autoPlayRotateObject.DORotate(new Vector3(0, 0, -360), 2f, RotateMode.FastBeyond360)
+                .SetLoops(-1, LoopType.Incremental)
+                .SetEase(Ease.Linear);
+        }
     }
 
     internal void OnAutoPlayStopped()
     {
+        if (autoPlayRotationTween != null)
+        {
+            autoPlayRotationTween.Kill();
+            autoPlayRotationTween = null;
+        }
+        if (autoPlayRotateObject != null)
+        {
+            autoPlayRotateObject.localRotation = Quaternion.identity;
+        }
+
         // If game is not spinning and no round is in progress, restore controls
         bool isRoundActive = gameManager.IsSpinning() || gameManager.lastResult != null;
 
@@ -685,6 +705,7 @@ public class UIManager : MonoBehaviour
         else if (isRoundActive)
         {
             if (stopButton) stopButton.interactable = false;
+            if (autoPlayButton) autoPlayButton.interactable = false;
         }
     }
 
@@ -906,6 +927,7 @@ public class UIManager : MonoBehaviour
     {
         if (balanceTween != null) balanceTween.Kill();
         if (winTween != null) winTween.Kill();
+        if (autoPlayRotationTween != null) autoPlayRotationTween.Kill();
         DOTween.KillAll();
     }
 
@@ -1018,7 +1040,7 @@ public class UIManager : MonoBehaviour
     {
         if (betPlusButton) betPlusButton.interactable = enabled;
         if (betMinusButton) betMinusButton.interactable = enabled;
-        if (autoPlayButton) autoPlayButton.interactable = enabled;
+        if (autoPlayButton) autoPlayButton.interactable = (gameManager != null && gameManager.isAutoPlaying) ? true : enabled;
     }
 
     /// <summary>
