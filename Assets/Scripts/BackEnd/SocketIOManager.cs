@@ -28,7 +28,7 @@ public class SocketIOManager : MonoBehaviour
 
     internal bool isConnected;
     internal bool isInitialized;
-    internal bool isExiting;   // True when CloseSocket is called intentionally (exit button)
+    internal bool isExiting;
 
     private Coroutine pingCoroutine;
     private float lastPongTime;
@@ -37,6 +37,10 @@ public class SocketIOManager : MonoBehaviour
     private const int MAX_MISSED_PONGS = 15;
     private const float PING_INTERVAL = 2f;
     private const float PONG_TIMEOUT = 5f;
+
+    // FIX: track whether auth arrived before Start() ran
+    private bool authReceivedBeforeStart = false;
+    private string pendingAuthJson = null;
 
     #region Initialization
 
@@ -57,9 +61,19 @@ public class SocketIOManager : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
         if (JSManager != null)
         {
-            JSManager.SendCustomMessage("authToken");
-            // Coroutine polls until both authToken + socketURL arrive — same pattern as SL-VIK
-            StartCoroutine(WaitForAuthToken());
+            // FIX: If platform already called ReceiveAuthToken before Start() ran,
+            // the pendingAuthJson is waiting — process it now instead of asking again.
+            if (pendingAuthJson != null)
+            {
+                Debug.Log("[SocketIO] Auth was buffered before Start — processing now");
+                ProcessAuthData(pendingAuthJson);
+                pendingAuthJson = null;
+            }
+            else
+            {
+                // Normal path: ask platform for token, it will call ReceiveAuthToken
+                JSManager.SendCustomMessage("authToken");
+            }
         }
 #else
         authToken = testToken;
@@ -68,43 +82,39 @@ public class SocketIOManager : MonoBehaviour
 #endif
     }
 
-    // SL-VIK pattern: keep polling, connect only after both values ready
-    private IEnumerator WaitForAuthToken()
-    {
-        while (string.IsNullOrEmpty(authToken))
-        {
-            Debug.Log("[SocketIO] Waiting for authToken...");
-            yield return null;
-        }
-
-        while (string.IsNullOrEmpty(socketURL))
-        {
-            Debug.Log("[SocketIO] Waiting for socketURL...");
-            yield return null;
-        }
-
-        Debug.Log("[SocketIO] Auth ready, connecting...");
-        InitializeSocket();
-    }
-
-    // Called by platform via Unity SendMessage — only SET values now, NOT init socket
+    // Called by platform via Unity SendMessage('SocketManager', 'ReceiveAuthToken', json)
     void ReceiveAuthToken(string jsonData)
     {
-        Debug.Log($"[SocketIO] Auth received");
+        Debug.Log("[SocketIO] Auth received");
 
+        // FIX: If Start() hasn't run yet (scene still loading), buffer the data.
+        // RequestAuthToken() will process it when Start() fires.
+        if (!isActiveAndEnabled || socketManager != null)
+        {
+            // Already initialized or not yet started — buffer it
+            pendingAuthJson = jsonData;
+            Debug.Log("[SocketIO] Auth buffered (scene not ready yet)");
+            return;
+        }
+
+        ProcessAuthData(jsonData);
+    }
+
+    private void ProcessAuthData(string jsonData)
+    {
         try
         {
             var authData = JsonUtility.FromJson<AuthTokenData>(jsonData);
 
-            authToken = authData.cookie;       // WaitForAuthToken coroutine picks this up
-            socketURL = authData.socketURL;    // WaitForAuthToken coroutine picks this up
+            authToken = authData.cookie;
+            socketURL = authData.socketURL;
 
             if (!string.IsNullOrEmpty(authData.nameSpace))
             {
                 nameSpace = authData.nameSpace;
             }
 
-            // DO NOT call InitializeSocket() here — coroutine handles it after both values ready
+            InitializeSocket();
         }
         catch (Exception e)
         {
@@ -415,8 +425,6 @@ public class SocketIOManager : MonoBehaviour
 
     internal void CloseSocket()
     {
-        // Mark as intentional exit BEFORE closing so OnSocketDisconnected shows
-        // the loading popup (with its animation) instead of the disconnect popup.
         isExiting = true;
 
         if (RaycastBlocker) RaycastBlocker.SetActive(true);
@@ -431,8 +439,6 @@ public class SocketIOManager : MonoBehaviour
 
         isConnected = false;
 
-        // If the socket close does not fire OnSocketDisconnected (e.g. already disconnected),
-        // still show the loading popup so the exit transition always looks clean.
         if (popupManager != null && !popupManager.IsLoadingPopupActive())
         {
             popupManager.ShowLoadingPopup(0f);
@@ -466,7 +472,7 @@ public class SocketIOManager : MonoBehaviour
             var column = new List<int>();
             for (int row = 0; row < 3; row++)
             {
-                column.Add(UnityEngine.Random.Range(1, 11)); // 1-10 regular symbols
+                column.Add(UnityEngine.Random.Range(1, 11));
             }
             matrix.Add(column);
         }
