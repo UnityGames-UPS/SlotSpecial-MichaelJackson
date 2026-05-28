@@ -13,10 +13,8 @@ public class SocketIOManager : MonoBehaviour
     protected string nameSpace = "playground";
     protected string gameID = "SL-MJ";
 
-
     [Header("References")]
     [SerializeField] private GameManager gameManager;
-
     [SerializeField] private UIManager uiManager;
     [SerializeField] private PopupManager popupManager;
     [SerializeField] internal JSFunctCalls JSManager;
@@ -60,6 +58,8 @@ public class SocketIOManager : MonoBehaviour
         if (JSManager != null)
         {
             JSManager.SendCustomMessage("authToken");
+            // Coroutine polls until both authToken + socketURL arrive — same pattern as SL-VIK
+            StartCoroutine(WaitForAuthToken());
         }
 #else
         authToken = testToken;
@@ -68,6 +68,26 @@ public class SocketIOManager : MonoBehaviour
 #endif
     }
 
+    // SL-VIK pattern: keep polling, connect only after both values ready
+    private IEnumerator WaitForAuthToken()
+    {
+        while (string.IsNullOrEmpty(authToken))
+        {
+            Debug.Log("[SocketIO] Waiting for authToken...");
+            yield return null;
+        }
+
+        while (string.IsNullOrEmpty(socketURL))
+        {
+            Debug.Log("[SocketIO] Waiting for socketURL...");
+            yield return null;
+        }
+
+        Debug.Log("[SocketIO] Auth ready, connecting...");
+        InitializeSocket();
+    }
+
+    // Called by platform via Unity SendMessage — only SET values now, NOT init socket
     void ReceiveAuthToken(string jsonData)
     {
         Debug.Log($"[SocketIO] Auth received");
@@ -75,15 +95,16 @@ public class SocketIOManager : MonoBehaviour
         try
         {
             var authData = JsonUtility.FromJson<AuthTokenData>(jsonData);
-            authToken = authData.cookie;
-            socketURL = authData.socketURL;
+
+            authToken = authData.cookie;       // WaitForAuthToken coroutine picks this up
+            socketURL = authData.socketURL;    // WaitForAuthToken coroutine picks this up
 
             if (!string.IsNullOrEmpty(authData.nameSpace))
             {
                 nameSpace = authData.nameSpace;
             }
 
-            InitializeSocket();
+            // DO NOT call InitializeSocket() here — coroutine handles it after both values ready
         }
         catch (Exception e)
         {
@@ -123,6 +144,7 @@ public class SocketIOManager : MonoBehaviour
         gameSocket.On<string>("result", OnResultReceived);
         gameSocket.On<string>("pong", OnPongReceived);
         gameSocket.On<string>("AnotherDevice", OnAnotherDevice);
+
         socketManager.Open();
     }
 
@@ -154,7 +176,7 @@ public class SocketIOManager : MonoBehaviour
         isConnected = false;
         StopPingRoutine();
 
-        if (isExiting)  
+        if (isExiting)
         {
             if (popupManager != null)
             {
@@ -349,7 +371,6 @@ public class SocketIOManager : MonoBehaviour
         }
     }
 
-
     private void OnPongReceived(string data)
     {
         waitingForPong = false;
@@ -452,7 +473,6 @@ public class SocketIOManager : MonoBehaviour
         return matrix;
     }
 }
-
 
 [Serializable]
 public class AuthTokenData
