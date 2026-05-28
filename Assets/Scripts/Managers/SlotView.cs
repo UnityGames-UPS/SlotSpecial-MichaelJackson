@@ -69,7 +69,7 @@ public class SlotView : MonoBehaviour
     [SerializeField] private float settleBounceDuration = 0.18f;
 
     [Header("Win Animation Settings")]
-    [SerializeField] private float winPopDuration = 0.4f;
+    [SerializeField] private float winPopDuration = 0.8f;
     [SerializeField] private int winPopRepeat = 3;
 
 
@@ -85,7 +85,6 @@ public class SlotView : MonoBehaviour
     [SerializeField] private float quickStopOvershoot = 20f;
     [SerializeField] private float quickStopDuration = 0.2f;
     [SerializeField] private int minSpinCyclesBeforeStop = 3;
-
     [Header("Scatter Anticipation Settings")]
     [SerializeField] private int scatterSymbolId = 12;
     [SerializeField] private float anticipationExtraSpins = 3f;
@@ -97,6 +96,7 @@ public class SlotView : MonoBehaviour
     [SerializeField] private int winSymbolLoopCount = 3;
     [Tooltip("Delay between enabling winBox overlay and starting the ImageAnimation - for sync timing")]
     [SerializeField] private float winLineBoxToAnimationDelay = 0.05f;
+    [SerializeField] private bool useFallbackPopAnimation = true;
 
     [Header("Win Box Overlays — Col 0..4  (each has 4 rows: 0=top .. 3=bottom)")]
     [SerializeField] private ColumnOverlays[] winBoxColumns = new ColumnOverlays[5];
@@ -540,7 +540,7 @@ public class SlotView : MonoBehaviour
         if (isBeatIt && currentResult?.freeGameData?.stickyWildPositions != null)
         {
             UpdateStickyWildsFromResult(currentResult.freeGameData.stickyWildPositions);
-            ApplyStickyWilds(currentStickyWilds);
+            // ApplyStickyWilds(currentStickyWilds); // Disabled at reel stop to allow win animations to be visible
         }
 
         onComplete?.Invoke();
@@ -806,6 +806,9 @@ public class SlotView : MonoBehaviour
         imageAnim = animGO.GetComponent<ImageAnimation>();
         if (imageAnim == null) return false;
 
+        if (currentDisplayMatrix == null || column >= currentDisplayMatrix.Count || currentDisplayMatrix[column] == null || row >= currentDisplayMatrix[column].Count)
+            return false;
+
         int symbolId = currentDisplayMatrix[column][row];
         if (!animationSpriteMap.TryGetValue(symbolId, out animSprites) || animSprites == null || animSprites.Count == 0)
             return false;
@@ -881,79 +884,65 @@ public class SlotView : MonoBehaviour
 
     internal void ShowWinLineAnimation(List<WinLine> winLines, System.Action onComplete)
     {
-
         if (winLines == null || winLines.Count == 0)
         {
             onComplete?.Invoke();
             return;
         }
 
-        for (int i = 0; i < winLines.Count; i++)
-        {
-            var line = winLines[i];
-    
-        }
-
         KillWinTweens();
-        winAnimationCoroutine = StartCoroutine(PlayWinLinesSequentially(winLines, onComplete));
+        winAnimationCoroutine = StartCoroutine(PlayAllWinLinesAtOnce(winLines, onComplete));
     }
 
-
-    private IEnumerator PlayWinLinesSequentially(List<WinLine> winLines, System.Action onComplete)
+    private IEnumerator PlayAllWinLinesAtOnce(List<WinLine> winLines, System.Action onComplete)
     {
-        int loopCount = 1; // Play only once per user request
-        float lineDuration = winSymbolLoopDuration * loopCount;
+        int loopCount = winPopRepeat; // Use inspector field
+        float lineDuration = useFallbackPopAnimation ? (winPopDuration * loopCount) : (winSymbolLoopDuration * loopCount);
 
-        List<int> prevPositions = null;
+        Debug.Log($"[PlayAllWinLinesAtOnce] Starting win animation for {winLines.Count} lines all at once. duration: {lineDuration}s ({loopCount} loops x {(useFallbackPopAnimation ? winPopDuration : winSymbolLoopDuration)}s), fallback: {useFallbackPopAnimation}");
 
-        Debug.Log($"[PlayWinLinesSequentially] Starting win animation for {winLines.Count} lines");
-
+        HashSet<int> uniquePositions = new HashSet<int>();
         foreach (var winLine in winLines)
         {
-            if (winLine.positions == null || winLine.positions.Count == 0) continue;
-
-           
-            if (prevPositions != null)
+            if (winLine.positions == null) continue;
+            foreach (int pos in winLine.positions)
             {
-                KillWinTweens(false);
-                foreach (int flatIdx in prevPositions)
-                {
-                    int r = flatIdx / 5;
-                    int c = flatIdx % 5;
-                    DisableWinBox(c, r);
-                    ResetSymbolScale(c, r);
-                }
+                uniquePositions.Add(pos);
             }
-
-            AudioManager.Instance?.PlayWinLine();
-
-            foreach (int flatIndex in winLine.positions)
-            {
-                int row = flatIndex / 5;
-                int col = flatIndex % 5;
-
-
-                if (col < 0 || col >= 5 || row < 0 || row >= 4)
-                {
-                    Debug.LogWarning($"[PlayWinLinesSequentially] Invalid position! col: {col}, row: {row}");
-                    continue;
-                }
-
-                EnableWinBox(col, row);
-
-                AnimateWinSymbol(col, row);
-            }
-
-            prevPositions = new List<int>(winLine.positions);
-
-            yield return new WaitForSeconds(lineDuration);
         }
+
+        AudioManager.Instance?.PlayWinLine();
+
+        foreach (int flatIndex in uniquePositions)
+        {
+            int row = flatIndex / 5;
+            int col = flatIndex % 5;
+
+            if (col < 0 || col >= 5 || row < 0 || row >= 4)
+            {
+                Debug.LogWarning($"[PlayAllWinLinesAtOnce] Invalid position! col: {col}, row: {row}");
+                continue;
+            }
+
+            if (useFallbackPopAnimation)
+            {
+                PopSlotIcon(col, row, loopCount);
+            }
+            else
+            {
+                EnableWinBox(col, row);
+                AnimateWinSymbol(col, row, loopCount);
+            }
+        }
+
+        yield return new WaitForSeconds(lineDuration);
 
         AudioManager.Instance?.StopWinLine();
         KillWinTweens(false);
 
         onComplete?.Invoke();
     }
+
     private void EnableWinBox(int col, int row)
     {
         var go = WinBox(winBoxColumns, col, row);
@@ -961,7 +950,6 @@ public class SlotView : MonoBehaviour
         {
             go.SetActive(true);
         }
- 
     }
 
     private void DisableWinBox(int col, int row)
@@ -1000,21 +988,46 @@ public class SlotView : MonoBehaviour
         }
     }
 
-
-    private void AnimateWinSymbol(int column, int row)
+    private void PopSlotIcon(int col, int row, int loops = 3)
     {
-        if (!TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites))
-            return;
+        if (col >= reelImagesList.Count) return;
+        var reel = reelImagesList[col];
+        if (reel.images == null) return;
+        int imageIndex = 8 + row;
+        if (imageIndex >= reel.images.Count) return;
+        var symbolImage = reel.images[imageIndex];
+        if (symbolImage != null)
+        {
+            symbolImage.transform.DOKill();
+            symbolImage.transform.localScale = Vector3.one;
+            Sequence popSeq = DOTween.Sequence();
+            // winPopDuration = full duration of one pop cycle (scale up + scale down)
+            popSeq.Append(symbolImage.transform.DOScale(1.2f, winPopDuration * 0.5f).SetEase(Ease.OutQuad));
+            popSeq.Append(symbolImage.transform.DOScale(1.0f, winPopDuration * 0.5f).SetEase(Ease.InQuad));
+            popSeq.SetLoops(loops);
+            winTweens.Add(popSeq);
+        }
+    }
 
-        int symbolId = currentDisplayMatrix[column][row];
-        if (!IsSpecialSymbol(symbolId))
+    private void AnimateWinSymbol(int column, int row, int loops = 3)
+    {
+        bool hasAnimation = TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites);
+        
+        int symbolId = 0;
+        if (currentDisplayMatrix != null && column < currentDisplayMatrix.Count && currentDisplayMatrix[column] != null && row < currentDisplayMatrix[column].Count)
+        {
+            symbolId = currentDisplayMatrix[column][row];
+        }
+
+        if (hasAnimation && IsSpecialSymbol(symbolId))
+        {
+            BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, loops, winLineBoxToAnimationDelay);
+        }
+        else if (symbolImage != null)
         {
             symbolImage.DOKill();
             symbolImage.transform.localScale = Vector3.one;
-            return;
         }
-
-        BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, 1, winLineBoxToAnimationDelay);
     }
 
     private void KillWinTweens(bool stopCoroutine = true)

@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour
     private Coroutine spinCoroutine;
     private bool stopRequested;
     private bool waitingForSpecialWin;
+    internal bool IsSpecialWinPending => waitingForSpecialWin;
 
     #region Initialization
 
@@ -205,20 +206,22 @@ public class GameManager : MonoBehaviour
         {
             double multiplier = TotalBetAmount > 0 ? (lastResult.winAmount / TotalBetAmount) : 0;
 
-            if (multiplier >= 5)
+            currentState = GameState.Idle;
+
+            if (multiplier < 50)
             {
-                uiManager.DisableControlsDuringWinAnimation();
-                currentState = GameState.Idle;
+                // Normal win: update balance/win display, then enable spin immediately
+                uiManager.OnSpinStopping(lastResult);
+                // Enable spin right away — win animation plays in background
+                uiManager.EnableControlsAfterWinAnimation();
             }
             else
             {
-                // For normal wins, trigger UI update immediately and enable controls
-                uiManager.OnSpinStopping(lastResult);
-                uiManager.EnableControlsAfterWinAnimation();
-                uiManager.OnSpinCompleted(lastResult);
-                currentState = GameState.Idle;
+                // Big Win / Colossal Win (>= 50x): keep controls disabled until popup is dismissed
+                uiManager.DisableControlsDuringWinAnimation();
             }
 
+            // Fire win animation in background (non-blocking for spin button)
             slotView.ShowWinLineAnimation(lastResult.winLines, OnWinAnimationComplete);
             StartCoroutine(TriggerWinPopupWithDelay(1.5f, lastResult));
         }
@@ -234,7 +237,7 @@ public class GameManager : MonoBehaviour
     {
         double multiplier = TotalBetAmount > 0 ? (result.winAmount / TotalBetAmount) : 0;
 
-        if (multiplier >= 5)
+        if (multiplier >= 50)
         {
             waitingForSpecialWin = true;
         }
@@ -260,21 +263,19 @@ public class GameManager : MonoBehaviour
 
     private void OnWinAnimationComplete()
     {
-        if (lastResult != null)
-        {
-            double multiplier = TotalBetAmount > 0 ? (lastResult.winAmount / TotalBetAmount) : 0;
-            if (multiplier >= 5)
-            {
-                uiManager.OnSpinStopping(lastResult);
-            }
-        }
+        // If lastResult is null, the player already pressed spin again (bypassed win animation).
+        // Nothing to do here — the new spin already called ProcessSpinResult via StartSpin.
+        if (lastResult == null) return;
 
+        // For big wins (>= 5x), the popup handles its own completion via ShowWinDisplayCoroutine.
+        // For normal wins, controls are already enabled — just handle auto/freespin chains.
         if (isAutoPlaying || isInFreeSpins)
         {
             StartCoroutine(DelayBeforeNextRound());
         }
         else
         {
+            // Normal play: process result (spin button already enabled when reels stopped)
             ProcessSpinResult();
         }
     }
@@ -306,6 +307,8 @@ public class GameManager : MonoBehaviour
 
     private void ProcessSpinResult()
     {
+        if (lastResult == null) return; // Already processed (e.g., player bypassed win animation)
+
         playerData = lastResult.playerData;
 
         uiManager.OnSpinCompleted(lastResult);

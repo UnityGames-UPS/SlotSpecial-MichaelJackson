@@ -39,11 +39,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private ImageAnimation winPopupImageAnimation;
     [SerializeField] private RectTransform winPopupImageRect;
     [SerializeField] private TMP_Text winPopupText;
-    [SerializeField] private List<Sprite> niceWinSprites;
-    [SerializeField] private List<Sprite> bigWinSprites;
-    [SerializeField] private List<Sprite> megaWinSprites;
-    [SerializeField] private List<Sprite> superWinSprites;
-    [SerializeField] private List<Sprite> ultimateWinSprites;
+    [SerializeField] private List<Sprite> bigWinSprites;      // shown at >= 50x
+    [SerializeField] private List<Sprite> colossalWinSprites;  // shown at >= 100x
 
     [Header("Spin Controls")]
     [SerializeField] private Button spinButton;
@@ -374,7 +371,7 @@ public class UIManager : MonoBehaviour
         double winAmount = result.winAmount;
         double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
-        if (multiplier >= 5)
+        if (multiplier >= 50)
         {
             earlyBigWinPopupTriggered = true;
             if (winDisplayCoroutine != null) StopCoroutine(winDisplayCoroutine);
@@ -390,34 +387,51 @@ public class UIManager : MonoBehaviour
     {
         UpdateBalanceDisplay(result.playerData.balance);
 
-        double targetWin = result.winAmount;
+        bool isFreeSpin = gameManager.isInFreeSpins && result.freeGameData != null;
 
-        if (result.winAmount > 0)
+        // In free spins: animate to totalRoundWin (cumulative).
+        // In normal spins: animate from 0 to winAmount.
+        double targetWin = isFreeSpin ? result.freeGameData.totalRoundWin : result.winAmount;
+        double startVal  = isFreeSpin ? currentWinDisplayValue : 0;
+
+        if (targetWin > startVal)
         {
-            if (!earlyBigWinPopupTriggered)
-            {
-                UpdateWinDisplay(targetWin);
-            }
-            
+            // Animate win text counting up to the target
+            if (winTween != null) winTween.Kill();
+            double animFrom = startVal;
+            winTween = DOTween.To(
+                () => animFrom,
+                x =>
+                {
+                    animFrom = x;
+                    currentWinDisplayValue = x;
+                    if (winAmountText) winAmountText.text = System.Math.Round(x, 3).ToString("0.###");
+                },
+                targetWin,
+                winCountDuration
+            ).SetEase(Ease.Linear);
+
             double multiplier = gameManager.TotalBetAmount > 0 ? (result.winAmount / gameManager.TotalBetAmount) : 0;
 
-            if (multiplier < 5 || !earlyBigWinPopupTriggered)
+            // Only show the popup for Big Win (>= 50x) or Colossal Win (>= 100x)
+            if (multiplier >= 50 && !earlyBigWinPopupTriggered)
             {
                 ShowWinDisplay(result);
             }
             earlyBigWinPopupTriggered = false;
         }
-        else
+        else if (!isFreeSpin && result.winAmount <= 0)
         {
-            // Update display to target total (maintains round total in Free Spins)
-            UpdateWinDisplay(targetWin);
+            // Normal spin with no win — instantly reset win display to 0
+            UpdateWinDisplay(0);
             earlyBigWinPopupTriggered = false;
         }
+        // else: free spin with same totalRoundWin (no new win this spin) — leave display unchanged
     }
 
     internal void OnSpinCompleted(SpinResult result)
     {
-        if (isSpecialWinActive) return;
+        if (isSpecialWinActive || (gameManager != null && gameManager.IsSpecialWinPending)) return;
 
         if (gameManager.isAutoPlaying)
         {
@@ -444,15 +458,23 @@ public class UIManager : MonoBehaviour
     internal void DisableControlsDuringWinAnimation()
     {
         SetBetControlsEnabled(false);
-        if (spinButton) spinButton.gameObject.SetActive(false);
-        if (stopButton) stopButton.gameObject.SetActive(false);
+        if (spinButton)
+        {
+            spinButton.gameObject.SetActive(true);
+            spinButton.interactable = false;
+        }
+        if (stopButton)
+        {
+            stopButton.gameObject.SetActive(true);
+            stopButton.interactable = false;
+        }
         
         if (gameManager != null && gameManager.lastResult != null)
         {
             double winAmount = gameManager.lastResult.winAmount;
             double multiplier = gameManager.TotalBetAmount > 0 ? (winAmount / gameManager.TotalBetAmount) : 0;
             
-            if (multiplier >= 5)
+            if (multiplier >= 50)
             {
                 if (winRingObject) winRingObject.SetActive(true);
             }
@@ -461,25 +483,40 @@ public class UIManager : MonoBehaviour
 
     internal void EnableControlsAfterWinAnimation()
     {
-        if (isSpecialWinActive) return;
+        if (isSpecialWinActive || (gameManager != null && gameManager.IsSpecialWinPending)) return;
 
         if (gameManager.isAutoPlaying)
         {
             if (spinButton) spinButton.gameObject.SetActive(false);
-            if (stopButton) stopButton.gameObject.SetActive(true);
+            if (stopButton)
+            {
+                stopButton.gameObject.SetActive(true);
+                stopButton.interactable = false;
+            }
         }
         else if (gameManager.isInFreeSpins)
         {
             if (spinButton) spinButton.gameObject.SetActive(false);
-            if (stopButton) stopButton.gameObject.SetActive(false);
+            if (stopButton)
+            {
+                stopButton.gameObject.SetActive(false);
+                stopButton.interactable = false;
+            }
         }
         else
         {
             SetBetControlsEnabled(true);
-            if (spinButton) spinButton.interactable = true;
+            if (spinButton)
+            {
+                spinButton.gameObject.SetActive(true);
+                spinButton.interactable = true;
+            }
             if (autoPlayButton) autoPlayButton.interactable = true;
-            if (spinButton) spinButton.gameObject.SetActive(true);
-            if (stopButton) stopButton.gameObject.SetActive(false);
+            if (stopButton)
+            {
+                stopButton.gameObject.SetActive(false);
+                stopButton.interactable = false;
+            }
         }
     }
 
@@ -507,23 +544,17 @@ public class UIManager : MonoBehaviour
 
 
         List<Sprite> selectedSprites = null;
-        float popupTime = 0f;
+        float popupTime = 2f; // Both tiers use 2 second popup
 
-        if (multiplier >= 100) {
-            selectedSprites = ultimateWinSprites;
-            popupTime = 15f;
-        } else if (multiplier >= 50) {
-            selectedSprites = superWinSprites;
-            popupTime = 12f;
-        } else if (multiplier >= 25) {
-            selectedSprites = megaWinSprites;
-            popupTime = 8f;
-        } else if (multiplier >= 10) {
+        if (multiplier >= 100)
+        {
+            // Colossal Win
+            selectedSprites = colossalWinSprites;
+        }
+        else
+        {
+            // Big Win (>= 50x)
             selectedSprites = bigWinSprites;
-            popupTime = 8f;
-        } else {
-            selectedSprites = niceWinSprites;
-            popupTime = 6f;
         }
 
         if (winPopupImageAnimation)
@@ -815,6 +846,9 @@ public class UIManager : MonoBehaviour
     {
         initialFreeSpins = spinsAwarded;
         totalFreeSpinsAwarded = spinsAwarded;
+
+        // Kill any running win tween (e.g. from wheel bonus win amount) before resetting
+        if (winTween != null) { winTween.Kill(); winTween = null; }
         currentWinDisplayValue = 0;
         UpdateWinDisplay(0);
 
