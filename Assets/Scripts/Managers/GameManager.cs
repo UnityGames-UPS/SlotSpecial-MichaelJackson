@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,9 +10,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] internal UIManager uiManager;
     [SerializeField] private PopupManager popupManager;
     [SerializeField] private SlotView slotView;
+    [SerializeField] private VideoManager videoManager;
+    [SerializeField] private AudioController audioController;
 
     [Header("Spin Settings")]
     [SerializeField] private float normalSpinDuration = 3.5f;
+
+    [Header("UI Elements")]
+    [SerializeField] internal GameObject FreeGamesIntroPanel;
+
+    internal bool freeSpinTrigger = false;
 
     internal GameConfig gameConfig;
     internal PlayerData playerData;
@@ -97,7 +105,7 @@ public class GameManager : MonoBehaviour
     #endregion
 
     #region Spin Control
-    
+
     internal void RequestSpin()
     {
         if (waitingForFreeSpinStart) return;
@@ -175,6 +183,12 @@ public class GameManager : MonoBehaviour
 
         currentState = GameState.Stopping;
 
+        if (lastResult.hasStackedWild)
+        {
+            slotView.ShowStackedWilds(lastResult.stackedWildReels);
+            yield return new WaitUntil(()=> slotView.stackWildAnimFinished);
+        }
+
         if (slotView != null && lastResult.resultMatrix != null)
         {
             if (stopRequested)
@@ -196,6 +210,7 @@ public class GameManager : MonoBehaviour
 
     private void OnReelsStoppedComplete()
     {
+        slotView.HideAllStackWildUI();
         if (lastResult.wheelBonusTriggered)
         {
             StartWheelBonus(lastResult.wheelBonusResult);
@@ -206,9 +221,14 @@ public class GameManager : MonoBehaviour
         {
             double multiplier = TotalBetAmount > 0 ? (lastResult.winAmount / TotalBetAmount) : 0;
 
+            // Big/Colossal win popups only apply to a single normal spin outside free spins.
+            // During free spins, any per-spin win just updates the cumulative round total —
+            // the big/colossal win check happens once, after the round ends (see EndFreeSpins).
+            bool isBigWinCandidate = multiplier >= 50 && !isInFreeSpins;
+
             currentState = GameState.Idle;
 
-            if (multiplier < 50)
+            if (!isBigWinCandidate)
             {
                 // Normal win: update balance/win display, then enable spin immediately
                 uiManager.OnSpinStopping(lastResult);
@@ -237,7 +257,7 @@ public class GameManager : MonoBehaviour
     {
         double multiplier = TotalBetAmount > 0 ? (result.winAmount / TotalBetAmount) : 0;
 
-        if (multiplier >= 50)
+        if (multiplier >= 50 && !isInFreeSpins)
         {
             waitingForSpecialWin = true;
         }
@@ -337,7 +357,8 @@ public class GameManager : MonoBehaviour
         {
             if (isRoundOver || freeSpinsRemaining <= 0)
             {
-                EndFreeSpins(0, freeSpinsUsed); // TODO: Use server total round win when available
+                double totalRoundWin = freeGameData != null ? freeGameData.totalRoundWin : 0;
+                EndFreeSpins(totalRoundWin, freeSpinsUsed);
             }
             else
             {
@@ -382,7 +403,7 @@ public class GameManager : MonoBehaviour
 
     #region Free Spins
 
-    private void StartFreeSpins(int spins)
+    private void StartFreeSpins(int spins, string freeSpinType)
     {
         isInFreeSpins = true;
         freeSpinsRemaining = spins;
@@ -394,15 +415,15 @@ public class GameManager : MonoBehaviour
             StopAutoPlay();
         }
 
-        uiManager.OnFreeSpinsStarted(spins);
+        uiManager.OnFreeSpinsStarted(spins, freeSpinType);
 
         currentState = GameState.Idle;
     }
 
     internal void StartFirstFreeSpin()
     {
-        waitingForFreeSpinStart = false;
 
+        waitingForFreeSpinStart = false;
         StartCoroutine(DelayBeforeFirstFreeSpin());
     }
 
@@ -436,9 +457,46 @@ public class GameManager : MonoBehaviour
             slotView.ClearStickyWilds();
         }
 
-        uiManager.OnFreeSpinsEnded(totalRoundWin, totalSpinsUsed);
+        // Block spinning/betting/autoplay while the win popups play out.
+        currentState = GameState.ShowingWin;
 
-        currentState = GameState.Idle;
+        // 1. Simple win panel plays for the total free-spin round win. The instant its
+        //    background finishes fading to fully opaque, we swap the free-spin UI/background
+        //    back to normal — masked behind the popup instead of flashing through.
+        // 2. If that total qualifies (>= 50x / 100x current bet), the big/colossal win popup
+        //    follows. Only once everything's done do we hand control back to the player.
+        uiManager.ShowPostRoundWinSequence(
+            totalRoundWin,
+            onBackgroundOpaque: () => uiManager.OnFreeSpinsEnded(totalRoundWin, totalSpinsUsed),
+            onComplete: () => currentState = GameState.Idle
+        );
+    }
+
+    private IEnumerator FreeSpinStartPanel(string freeSpinType)
+    {
+        //yield return new WaitForSeconds(0.5f);
+
+        FreeGamesIntroPanel.GetComponent<CanvasGroup>().alpha = 0f;
+        FreeGamesIntroPanel.SetActive(true);
+        FreeGamesIntroPanel.GetComponent<CanvasGroup>().DOFade(1f, 0.3f).SetEase(Ease.InOutSine);
+        yield return new WaitUntil(()=> freeSpinTrigger);
+        if(freeSpinType == "beatIt")
+        {
+            audioController.PlayBeatItBackground();
+            videoManager.isVideoPlaying = true;
+            videoManager.PlayVideo(0);
+        }
+        if(freeSpinType == "smoothCriminal")
+        {
+            videoManager.isVideoPlaying = true;
+            videoManager.PlayVideo(2);
+        }
+        yield return new WaitUntil(()=> videoManager.isVideoPlaying == false);
+        if(freeSpinType == "smoothCriminal")
+        {
+            audioController.PlaySmoothCriminalBackground();
+        }
+        StartFirstFreeSpin();
     }
 
     #endregion
@@ -476,19 +534,24 @@ public class GameManager : MonoBehaviour
         // 2. Trigger free spins if awarded
         if (result.result.type == "freeGames")
         {
-            StartFreeSpins(result.result.count ?? 0);
-            StartFirstFreeSpin();
+            audioController.StopBackground();
+            StartCoroutine(FreeSpinStartPanel(result.result.feature));
+            StartFreeSpins(result.result.count ?? 0, result.result.feature);
         }
         else
         {
-            // If it was just credits, we return to the normal flow
+            // The win panel (and big/colossal win popup, if it qualified) has already
+            // played out inside UIManager — see ShowWheelBonus/WheelBonusWinPanelSequence —
+            // with the wheel panel staying up underneath until that popup masked the switch
+            // back to normal spin. By the time we get here, it's safe to resume play.
+            currentState = GameState.Idle;
+
             if (isAutoPlaying)
             {
                 StartCoroutine(DelayBeforeNextRound());
             }
             else
             {
-                currentState = GameState.Idle;
                 uiManager.OnSpinCompleted(lastResult);
             }
         }

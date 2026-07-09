@@ -8,6 +8,8 @@ public class SlotView : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private GameManager gameManager;
+    [SerializeField] private MichealMoves michealMoves;
+    [SerializeField] private AudioController audioController;
 
     [Header("Symbol Sprites - Assign by Name")]
     [Tooltip("Symbol sprites assigned by name. Array order: Wild, Glove, Hat, Sunglasses, Shoes, Ace, King, Queen, Jack, Ten, Nine, Jackpot, Bonus, MoonwalkWild, StackedWild")]
@@ -108,16 +110,39 @@ public class SlotView : MonoBehaviour
     [Header("Sticky Wild Overlays — Col 0..4  (each has 3 rows)")]
     [SerializeField] private ColumnOverlays[] stickyWildColumns = new ColumnOverlays[5];
 
+    [Header("Bonus Slot BG")]
+    [SerializeField] private GameObject[] SlotBg;
+
+    [Header("Stacked Wild Objects")]
+    [SerializeField] private GameObject stackedWildMaiObject;
+    [SerializeField] private GameObject stackedWildAnimationMainObj;
+    [SerializeField] private ImageAnimation stackedWildMJAnimation;
+    [SerializeField] private List<ImageAnimation> stackedwildAnimationReelObj;
+    [SerializeField] private List<GameObject> stackedWildReels;
+    private List<int> stackedAnimationSequence = new List<int> { 0, 4, 2, 3, 1, 4, 0, 3, 2 };
+    internal bool stackWildAnimFinished = true;
 
 
     private float middlePosition = 0f;
     private float cycleDistance;
 
+    private int BonusCount = 0;
 
     private List<Tween> spinTweens = new List<Tween>();
     private List<Tween> winTweens = new List<Tween>();
     private List<int> reelCycleCount = new List<int>();
     private Coroutine winAnimationCoroutine;
+
+    // Tracks visible-window SlotIcons (imageIndex 8/9/10) that were pushed to the bottom of the
+    // hierarchy (SetAsLastSibling) so a landed bonus symbol renders above everything else.
+    // Restored to their original sibling index right before the next spin starts.
+    private struct ElevatedBonusIcon
+    {
+        public int column;
+        public int imageIndex;
+        public int originalSiblingIndex;
+    }
+    private List<ElevatedBonusIcon> elevatedBonusIcons = new List<ElevatedBonusIcon>();
 
 
     private List<List<int>> currentDisplayMatrix;
@@ -127,10 +152,12 @@ public class SlotView : MonoBehaviour
 
     // Stores the accumulated sticky wild positions keyed as "row_col" -> symbolId
     private Dictionary<string, int> currentStickyWilds;
+    private int smoothCriminalSpinIndex = 0;
 
     // How many seconds before the last reel stops to reveal newly-added sticky wilds
     [Header("BeatIt Sticky Wild Settings")]
     [SerializeField] private float newStickyWildPreRevealTime = 1.2f;
+
 
     #region Initialization
 
@@ -139,6 +166,7 @@ public class SlotView : MonoBehaviour
         BuildSymbolSpriteArray();
         InitializeReels();
         DisableAllOverlays();
+        //ShowStackedWilds(temp);
     }
 
     private void DisableAllOverlays()
@@ -165,7 +193,7 @@ public class SlotView : MonoBehaviour
     private void BuildSymbolSpriteArray()
     {
         symbolSpritesMap = new Dictionary<int, Sprite>();
-        
+
         symbolSpritesMap[0] = spriteWild;
         symbolSpritesMap[1] = spriteGlove;
         symbolSpritesMap[2] = spriteHat;
@@ -179,12 +207,12 @@ public class SlotView : MonoBehaviour
         symbolSpritesMap[10] = spriteNine;
         symbolSpritesMap[11] = spriteJackpot;
         symbolSpritesMap[12] = spriteBonus;
-        
+
         // MoonwalkWild Variants
         symbolSpritesMap[13] = spriteMoonwalkWild;
         symbolSpritesMap[1013] = spriteMoonwalkWildBonus;
         symbolSpritesMap[2013] = spriteMoonwalkWildJackpot;
-        
+
         // StackedWild Variants
         symbolSpritesMap[14] = spriteStackedWild;
         symbolSpritesMap[1014] = spriteStackedWildBonus;
@@ -192,16 +220,16 @@ public class SlotView : MonoBehaviour
 
         // Build the animation sprite map
         animationSpriteMap = new Dictionary<int, List<Sprite>>();
-        
+
         animationSpriteMap[0] = animSpritesWild;
         animationSpriteMap[11] = animSpritesJackpot;
         animationSpriteMap[12] = animSpritesBonus;
-        
+
         // MoonwalkWild Variants
         animationSpriteMap[13] = animSpritesMoonwalkWild;
         animationSpriteMap[1013] = animSpritesMoonwalkWildBonus;
         animationSpriteMap[2013] = animSpritesMoonwalkWildJackpot;
-        
+
         // StackedWild Variants
         animationSpriteMap[14] = animSpritesStackedWild;
         animationSpriteMap[1014] = animSpritesStackedWildBonus;
@@ -274,6 +302,10 @@ public class SlotView : MonoBehaviour
             int imageIndex = 8 + row;
             int symbolId = visibleSymbolIds[row];
             reel.images[imageIndex].sprite = GetSymbolSprite(symbolId);
+            if (symbolId == 12)
+            {
+                BringVisibleBonusIconToFront(columnIndex, imageIndex);
+            }
         }
 
         for (int i = 0; i < 8; i++)
@@ -318,6 +350,60 @@ public class SlotView : MonoBehaviour
         return symId == bonusId || symId == 1013 || symId == 1014;
     }
 
+    /// <summary>
+    /// Called when a bonus symbol lands in one of the 3 visible rows (imageIndex 8/9/10) of a reel.
+    /// Moves that SlotIcon to the bottom of its parent's child list (SetAsLastSibling) so it renders
+    /// on the topmost layer. Its original sibling index is remembered so RestoreElevatedBonusIcons()
+    /// can put it back before the next spin. Safe to call repeatedly — already-elevated icons are skipped.
+    /// </summary>
+    private void BringVisibleBonusIconToFront(int columnIndex, int imageIndex)
+    {
+        if (columnIndex >= reelImagesList.Count) return;
+
+        var reel = reelImagesList[columnIndex];
+        if (reel.images == null || imageIndex >= reel.images.Count || reel.images[imageIndex] == null) return;
+
+        // Already elevated this spin — don't re-capture an already-front sibling index as "original".
+        for (int i = 0; i < elevatedBonusIcons.Count; i++)
+        {
+            if (elevatedBonusIcons[i].column == columnIndex && elevatedBonusIcons[i].imageIndex == imageIndex)
+                return;
+        }
+
+        Transform iconTransform = reel.images[imageIndex].transform;
+        int originalSiblingIndex = iconTransform.GetSiblingIndex();
+
+        elevatedBonusIcons.Add(new ElevatedBonusIcon
+        {
+            column = columnIndex,
+            imageIndex = imageIndex,
+            originalSiblingIndex = originalSiblingIndex
+        });
+        iconTransform.SetAsLastSibling();
+        reel.images[imageIndex].transform.localScale = new Vector3(1.4f, 1.4f, 1.4f);
+    }
+
+    /// <summary>
+    /// Puts every SlotIcon elevated by BringVisibleBonusIconToFront back at its original sibling index.
+    /// Call this before a new spin starts so bonus icons return to their normal stacking position.
+    /// </summary>
+    private void RestoreElevatedBonusIcons()
+    {
+        if (elevatedBonusIcons.Count == 0) return;
+
+        foreach (var entry in elevatedBonusIcons)
+        {
+            if (entry.column >= reelImagesList.Count) continue;
+
+            var reel = reelImagesList[entry.column];
+            if (reel.images == null || entry.imageIndex >= reel.images.Count || reel.images[entry.imageIndex] == null) continue;
+
+            reel.images[entry.imageIndex].transform.SetSiblingIndex(entry.originalSiblingIndex);
+            reel.images[entry.imageIndex].transform.localScale = new Vector3(1f, 1f, 1f);
+        }
+        elevatedBonusIcons.Clear();
+    }
+
     private bool IsWildSymbol(int symId)
     {
         int wildId = gameManager?.gameConfig != null ? gameManager.gameConfig.wildSymbolId : 0;
@@ -341,6 +427,10 @@ public class SlotView : MonoBehaviour
         isSpinning = true;
         scatterAnticipationActive = false;
         KillAllTweens();
+
+        // Bonus icons that got pushed to the front layer last round go back to their
+        // original position before this new spin begins.
+        RestoreElevatedBonusIcons();
 
         DisableAllOverlays();
 
@@ -383,7 +473,8 @@ public class SlotView : MonoBehaviour
                 .SetEase(Ease.Linear)
         );
 
-        cycleSequence.OnComplete(() => {
+        cycleSequence.OnComplete(() =>
+        {
             if (isSpinning)
             {
                 CycleReelSymbols(columnIndex);
@@ -426,6 +517,62 @@ public class SlotView : MonoBehaviour
 
     #region Stop Spin
 
+    internal void ShowStackedWilds(List<int> stackedWildPositions)
+    {
+        // Debug.Log("Called");
+        // Debug.Log(stackedWildPositions==null);
+        // Debug.Log(stackedWildPositions.Count!=5);
+        if (stackedWildPositions == null || stackedWildPositions.Count >= 5) return;
+        //Debug.Log("yoyo");
+        stackWildAnimFinished = false;
+        StartCoroutine(stackedWildAnimation(stackedWildPositions));
+    }
+
+    private IEnumerator stackedWildAnimation(List<int> stackedWildPositions)
+    {
+        stackedWildMJAnimation.gameObject.SetActive(true);
+        audioController.PlayMichealSnap();
+        stackedWildMJAnimation.StartAnimation();
+        yield return new WaitUntil(() => stackedWildMJAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        stackedWildMJAnimation.gameObject.SetActive(false);
+
+        stackedWildMaiObject.SetActive(true);
+        stackedWildAnimationMainObj.SetActive(true);
+        for (int i = 0; i < stackedAnimationSequence.Count; i++)
+        {
+            int currentAnimNumber = stackedAnimationSequence[i];
+            stackedwildAnimationReelObj[currentAnimNumber].gameObject.SetActive(true);
+            audioController.PlayStackWild();
+            stackedwildAnimationReelObj[currentAnimNumber].StartAnimation();
+            yield return new WaitUntil(() => stackedwildAnimationReelObj[currentAnimNumber].currentAnimationState == ImageAnimation.ImageState.FINISHED);
+            stackedwildAnimationReelObj[currentAnimNumber].gameObject.SetActive(false);
+        }
+
+        for (int i = 0; i < stackedWildPositions.Count; i++)
+        {
+            int reel = stackedWildPositions[i];
+            stackedwildAnimationReelObj[reel].gameObject.SetActive(true);
+            audioController.PlayStackWild();
+            stackedwildAnimationReelObj[reel].StartAnimation();
+            yield return new WaitForSeconds(0.5f);
+            stackedWildReels[reel].SetActive(true);
+            yield return new WaitUntil(() => stackedwildAnimationReelObj[reel].currentAnimationState == ImageAnimation.ImageState.FINISHED);
+            stackedwildAnimationReelObj[reel].gameObject.SetActive(false);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+        stackedWildAnimationMainObj.SetActive(false);
+        stackWildAnimFinished = true;
+    }
+
+    internal void HideAllStackWildUI()
+    {
+        for (int i = 0; i < stackedWildReels.Count; i++)
+        {
+            stackedWildReels[i].SetActive(false);
+        }
+    }
+
     internal void StopSpin(List<List<int>> resultMatrix, System.Action onComplete)
     {
         if (!isSpinning)
@@ -435,9 +582,9 @@ public class SlotView : MonoBehaviour
             {
                 SetReelSymbols(col, resultMatrix[col], false);
             }
-            
-       
-            
+
+
+
             onComplete?.Invoke();
             return;
         }
@@ -495,6 +642,9 @@ public class SlotView : MonoBehaviour
                 {
                     // Delay = total stop time minus pre-reveal window, clamped to >= 0
                     float preRevealDelay = Mathf.Max(0f, longestStopTime - newStickyWildPreRevealTime);
+                    RevealBeatItStickyWildsAfterDelay(preRevealDelay, newlyAdded);
+                    michealMoves.allMovesDone = false;
+                    yield return new WaitUntil(() => michealMoves.allMovesDone);
                     StartCoroutine(RevealNewStickyWildsAfterDelay(preRevealDelay, newlyAdded));
                 }
             }
@@ -515,15 +665,40 @@ public class SlotView : MonoBehaviour
             if (wildCols != null && wildCols.Count > 0)
             {
                 float preRevealDelay = Mathf.Max(0f, longestStopTime - newStickyWildPreRevealTime);
+                RevealSmoothCriminalStickyWildRowsAfterDelay(preRevealDelay, resultMatrix);
+                michealMoves.allMovesDone = false;
+                yield return new WaitUntil(() => michealMoves.allMovesDone);
                 StartCoroutine(RevealNewStickyWildsAfterDelay(preRevealDelay, wildCols));
             }
         }
 
+        BonusCount = 0;
         // ---- Start stopping each reel ----
         for (int col = 0; col < 5; col++)
         {
+            foreach (var slotbg in SlotBg)
+            {
+                slotbg.SetActive(false);
+            }
+            if (BonusCount >= 2 && isQuickStop == false)
+            {
+                SlotBg[col].SetActive(true);
+                yield return new WaitForSeconds(1.5f);
+            }
             float delay = col * stagger;
             StartCoroutine(StopSingleReel(col, resultMatrix[col], delay, isQuickStop));
+            for (int i = 0; i < resultMatrix[col].Count; i++)
+            {
+                int temp = resultMatrix[col][i];
+                if (IsBonusSymbol(temp))
+                {
+                    BonusCount++;
+                }
+            }
+        }
+        foreach (var slotbg in SlotBg)
+        {
+            slotbg.SetActive(false);
         }
 
         yield return new WaitForSeconds(longestStopTime);
@@ -567,6 +742,38 @@ public class SlotView : MonoBehaviour
             if (currentStickyWilds == null || !currentStickyWilds.ContainsKey(key))
             {
                 result[key] = gameManager?.gameConfig?.wildSymbolId ?? 0;
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Same all-wild-column detection as GetSmoothCriminalWildPositions, but returns one
+    /// entry per wild column (key = column index only, e.g. "2") instead of one entry per
+    /// cell. MichealMoves.PlaySmoothCriminalRevealSequence reveals an entire column's
+    /// overlay in one shot, so it needs the column index, not "row_col" pairs.
+    /// </summary>
+    private Dictionary<string, int> GetSmoothCriminalWildColumns(List<List<int>> matrix)
+    {
+        var result = new Dictionary<string, int>();
+        if (matrix == null) return result;
+
+        int wildId = gameManager?.gameConfig?.wildSymbolId ?? 0;
+
+        for (int col = 0; col < matrix.Count; col++)
+        {
+            var column = matrix[col];
+            if (column == null || column.Count < 3) continue;
+
+            bool allWild = true;
+            for (int row = 0; row < column.Count; row++)
+            {
+                if (column[row] != wildId) { allWild = false; break; }
+            }
+
+            if (allWild)
+            {
+                result[col.ToString()] = wildId;
             }
         }
         return result;
@@ -618,6 +825,32 @@ public class SlotView : MonoBehaviour
 
         // Only reveal if we're still in the stopping phase (guard against quick-stop race)
         ApplyStickyWilds(newPositions);
+    }
+
+    /// <summary>
+    /// BeatIt-only variant of the pre-reveal: instead of instantly showing the wild overlay,
+    /// each newly-added sticky wild position first plays the MichealMoves "dance move"
+    /// animation at that slot's position, and only once that finishes does the slot's own
+    /// ImageAnimation (its reveal animation) start playing. Falls back to the instant
+    /// ApplyStickyWilds reveal if MichealMoves isn't assigned, so nothing breaks if it's
+    /// left empty in the inspector.
+    /// </summary>
+    private void RevealBeatItStickyWildsAfterDelay(float delay, Dictionary<string, int> newPositions)
+    {
+        if (michealMoves != null)
+        {
+            michealMoves.PlayRevealSequence(newPositions, null);
+        }
+    }
+
+    private void RevealSmoothCriminalStickyWildRowsAfterDelay(float delay, List<List<int>> resultMatrix)
+    {
+        if (michealMoves != null)
+        {
+            var wildColumns = GetSmoothCriminalWildColumns(resultMatrix);
+            michealMoves.PlaySmoothCriminalRevealSequence(smoothCriminalSpinIndex, wildColumns, null);
+            smoothCriminalSpinIndex++;
+        }
     }
 
     /// <summary>
@@ -746,8 +979,8 @@ public class SlotView : MonoBehaviour
                     PlayStopAnimationsForColumn(col);
                 }
             }
-            
-            
+
+
             return;
         }
 
@@ -768,8 +1001,9 @@ public class SlotView : MonoBehaviour
         for (int row = 0; row < currentDisplayMatrix[col].Count; row++)
         {
             int symId = currentDisplayMatrix[col][row];
-            if (IsSpecialSymbol(symId))
+            if (IsSpecialSymbol(symId) || IsBonusSymbol(symId))
             {
+                //BonusCount++;
                 AnimateSymbolSingleLoop(col, row, 1);
             }
         }
@@ -779,7 +1013,12 @@ public class SlotView : MonoBehaviour
     {
         if (!TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites))
             return;
-
+        int symbolId = currentDisplayMatrix[column][row];
+        if (symbolId == 12)
+        {
+            imageAnim.transform.localScale = new Vector3(1.09f, 1.09f, 1.09f);
+            audioController.PlayBonusIconPop();
+        }
         BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, loopCount, 0f);
     }
 
@@ -826,7 +1065,8 @@ public class SlotView : MonoBehaviour
 
         Sequence seq = DOTween.Sequence();
 
-        seq.AppendCallback(() => {
+        seq.AppendCallback(() =>
+        {
             animGO.SetActive(true);
             Image animRenderer = imageAnim.rendererDelegate;
             if (animRenderer != null)
@@ -834,6 +1074,7 @@ public class SlotView : MonoBehaviour
                 animRenderer.DOKill();
                 Color c = animRenderer.color;
                 animRenderer.color = new Color(c.r, c.g, c.b, 0f);
+                animRenderer.preserveAspect = true;
                 animRenderer.DOFade(1f, 0.2f);
             }
             symbolImage.DOKill();
@@ -852,20 +1093,25 @@ public class SlotView : MonoBehaviour
 
         seq.AppendInterval(winSymbolLoopDuration * loopCount);
 
-        seq.AppendCallback(() => {
+        seq.AppendCallback(() =>
+        {
             Image animRenderer = imageAnim != null ? imageAnim.rendererDelegate : null;
             if (animRenderer != null)
             {
                 animRenderer.DOKill();
-                animRenderer.DOFade(0f, 0.2f).OnComplete(() => {
+                animRenderer.DOFade(0f, 0.2f).OnComplete(() =>
+                {
                     if (imageAnim != null) imageAnim.StopAnimation();
                     if (animGO != null) animGO.SetActive(false);
+                    if (animGO != null) animGO.transform.localScale = Vector3.one;
+
                 });
             }
             else
             {
                 if (imageAnim != null) imageAnim.StopAnimation();
                 if (animGO != null) animGO.SetActive(false);
+                if (animGO != null) animGO.transform.localScale = Vector3.one;
             }
 
             if (symbolImage != null)
@@ -890,12 +1136,13 @@ public class SlotView : MonoBehaviour
             return;
         }
 
-        KillWinTweens();
         winAnimationCoroutine = StartCoroutine(PlayAllWinLinesAtOnce(winLines, onComplete));
     }
 
     private IEnumerator PlayAllWinLinesAtOnce(List<WinLine> winLines, System.Action onComplete)
     {
+        yield return new WaitForSeconds(2f); // Small delay to ensure any last-frame animations finish before we kill them
+        KillWinTweens(false, true); // false: don't stop this coroutine (self); true: keep bonus icon at its enlarged scale
         int loopCount = winPopRepeat; // Use inspector field
         float lineDuration = useFallbackPopAnimation ? (winPopDuration * loopCount) : (winSymbolLoopDuration * loopCount);
 
@@ -910,7 +1157,7 @@ public class SlotView : MonoBehaviour
                 uniquePositions.Add(pos);
             }
         }
-
+        audioController.PlayWinLine();
         AudioManager.Instance?.PlayWinLine();
 
         foreach (int flatIndex in uniquePositions)
@@ -938,7 +1185,7 @@ public class SlotView : MonoBehaviour
         yield return new WaitForSeconds(lineDuration);
 
         AudioManager.Instance?.StopWinLine();
-        KillWinTweens(false);
+        KillWinTweens(false, true);
 
         onComplete?.Invoke();
     }
@@ -949,6 +1196,11 @@ public class SlotView : MonoBehaviour
         if (go != null)
         {
             go.SetActive(true);
+            Image img = go.GetComponent<Image>();
+            ImageAnimation anim = go.GetComponent<ImageAnimation>();
+            anim.rendererDelegate = img;
+            anim.AnimationSpeed = 13f;
+            anim.StartAnimation();
         }
     }
 
@@ -1012,11 +1264,16 @@ public class SlotView : MonoBehaviour
     private void AnimateWinSymbol(int column, int row, int loops = 3)
     {
         bool hasAnimation = TryGetAnimationComponents(column, row, out Image symbolImage, out GameObject animGO, out ImageAnimation imageAnim, out List<Sprite> animSprites);
-        
+
         int symbolId = 0;
         if (currentDisplayMatrix != null && column < currentDisplayMatrix.Count && currentDisplayMatrix[column] != null && row < currentDisplayMatrix[column].Count)
         {
             symbolId = currentDisplayMatrix[column][row];
+        }
+
+        if (symbolId == 12)
+        {
+            animGO.transform.localScale = new Vector3(1.09f, 1.09f, 1.09f);
         }
 
         if (hasAnimation && IsSpecialSymbol(symbolId))
@@ -1030,7 +1287,7 @@ public class SlotView : MonoBehaviour
         }
     }
 
-    private void KillWinTweens(bool stopCoroutine = true)
+    private void KillWinTweens(bool stopCoroutine = true, bool preserveBonusIconScale = false)
     {
         foreach (var tween in winTweens)
         {
@@ -1072,6 +1329,7 @@ public class SlotView : MonoBehaviour
         DisableColumns(winBoxColumns);
 
         // Restore all symbol image alphas to full opacity
+        Sprite bonusSprite = GetSymbolSprite(scatterSymbolId);
         foreach (var reel in reelImagesList)
         {
             if (reel.images != null)
@@ -1081,7 +1339,15 @@ public class SlotView : MonoBehaviour
                     if (image != null)
                     {
                         image.DOKill();
-                        image.transform.localScale = Vector3.one;
+
+                        // Leave the elevated bonus icon at its enlarged scale during win-line
+                        // animation cleanup — it only gets reset to 1 when a new spin starts.
+                        bool isBonusIcon = preserveBonusIconScale && image.sprite == bonusSprite;
+                        if (!isBonusIcon)
+                        {
+                            image.transform.localScale = Vector3.one;
+                        }
+
                         Color c = image.color;
                         image.color = new Color(c.r, c.g, c.b, 1f);
                     }
@@ -1092,7 +1358,7 @@ public class SlotView : MonoBehaviour
 
     #endregion
 
-  
+
     internal List<List<int>> GetCurrentDisplayMatrix()
     {
         return currentDisplayMatrix;
@@ -1145,6 +1411,7 @@ public class SlotView : MonoBehaviour
     internal void ClearStickyWilds()
     {
         currentStickyWilds = null;
+        smoothCriminalSpinIndex = 0;
         DisableColumns(stickyWildColumns);
     }
 

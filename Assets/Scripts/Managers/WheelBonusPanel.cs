@@ -4,9 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using DG.Tweening;
 
 public class WheelBonusPanel : MonoBehaviour
 {
+    [Header("Audio Controller")]
+    [SerializeField] private AudioController audioController;
+
     [Header("Wheels")]
     [SerializeField] private WheelSpinController mainWheel;
     [SerializeField] private WheelSpinController miniWheel;
@@ -17,6 +21,9 @@ public class WheelBonusPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI winAmountText;
     [SerializeField] private SwipeHandler swipeHandler;
     [SerializeField] private GameObject startInstructionArea;
+    [SerializeField] private GameObject SparkleAnimObj;
+    [SerializeField] private ImageAnimation MiniWheelStartAnim;
+    [SerializeField] private TMP_Text FreeSpinCountText;
 
     [Header("Settings")]
     [SerializeField] private float delayBetweenWheels = 1f;
@@ -27,7 +34,7 @@ public class WheelBonusPanel : MonoBehaviour
 
     private void Awake()
     {
-     
+
 
         if (swipeHandler != null)
         {
@@ -47,7 +54,7 @@ public class WheelBonusPanel : MonoBehaviour
     {
         spinTriggered = true;
         if (swipeHandler != null) swipeHandler.gameObject.SetActive(false);
-        if (startInstructionArea != null) startInstructionArea.SetActive(false);
+        //if (startInstructionArea != null) startInstructionArea.SetActive(false);
     }
 
     internal void Setup(WheelBonusConfig config, ServerWheelBonusResult result, Action<ServerWheelBonusResult> onComplete)
@@ -72,7 +79,7 @@ public class WheelBonusPanel : MonoBehaviour
                 {
                     // If we run out of server segments, cycle back to the beginning
                     if (creditIdx >= serverCredits.Count) creditIdx = 0;
-                    
+
                     if (serverCredits.Count > 0)
                     {
                         var data = serverCredits[creditIdx++];
@@ -88,7 +95,7 @@ public class WheelBonusPanel : MonoBehaviour
                     {
                         var data = serverMultipliers[multiIdx++];
                         seg.assignedValue = data.value;
-                        if (seg.valueText != null) seg.valueText.text = data.value.ToString() + " Extra";
+                        if (seg.valueText != null) seg.valueText.text = data.value.ToString(); //+ " Extra";
                     }
                 }
                 else if (seg.type == WheelSegmentType.FreeGames)
@@ -98,7 +105,7 @@ public class WheelBonusPanel : MonoBehaviour
                     if (data != null)
                     {
                         seg.assignedValue = data.count ?? 0;
-                        if (seg.valueText != null) seg.valueText.text = seg.featureName;
+                        //if (seg.valueText != null) seg.valueText.text = seg.featureName;
                     }
                 }
             }
@@ -125,6 +132,7 @@ public class WheelBonusPanel : MonoBehaviour
 
         spinTriggered = false;
         if (swipeHandler != null) swipeHandler.gameObject.SetActive(true);
+        swipeHandler.GetComponent<ImageAnimation>().StartAnimation();
         if (startInstructionArea != null) startInstructionArea.SetActive(true);
     }
 
@@ -135,12 +143,13 @@ public class WheelBonusPanel : MonoBehaviour
 
     private IEnumerator BonusSequence()
     {
+        audioController.PlayBonusWheelBackground();
         // 0. Wait for user to tap/slide to spin
         yield return new WaitUntil(() => spinTriggered);
 
         // 1. Find target index on main wheel
         int mainTargetIndex = FindMainWheelTargetIndex();
-        
+
         if (mainTargetIndex == -1)
         {
             Debug.LogError("Could not find matching segment on main wheel!");
@@ -151,23 +160,42 @@ public class WheelBonusPanel : MonoBehaviour
         // 2. Spin Main Wheel
         bool mainSpinDone = false;
         mainWheel.SpinToIndex(mainTargetIndex, () => mainSpinDone = true);
-        
+
         yield return new WaitUntil(() => mainSpinDone);
         yield return new WaitForSeconds(0.5f);
+        if (resultData.result.type != "multiplierWheel")
+        {
+            audioController.PlayBonusWheelSparkle();
+            SparkleAnimObj.SetActive(true);
+            SparkleAnimObj.GetComponent<ImageAnimation>().StartAnimation();
+            yield return new WaitUntil(() => SparkleAnimObj.GetComponent<ImageAnimation>().currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        }
 
         // 3. Check if we need to spin the mini wheel (Multiplier scenario)
         if (resultData.result.type == "multiplierWheel")
         {
+            audioController.PlayBonusTrackMultiplier();
+            MiniWheelStartAnim.gameObject.SetActive(true);
+            MiniWheelStartAnim.StartAnimation();
+            yield return new WaitUntil(() => MiniWheelStartAnim.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+            MiniWheelStartAnim.gameObject.SetActive(false);
+            yield return new WaitForSeconds(0.5f);
+            CanvasGroup cg = miniWheel.GetComponent<CanvasGroup>();
+            cg.alpha = 0f;
             miniWheel.gameObject.SetActive(true);
+            cg.DOFade(1f, 1f).SetEase(Ease.InOutSine);
+            yield return new WaitForSeconds(1f);
             miniWheelArrow.SetActive(true);
             yield return new WaitForSeconds(delayBetweenWheels);
 
             int miniTargetIndex = FindMiniWheelTargetIndex();
-            
+
+            audioController.PlayInnerWheel();
             bool miniSpinDone = false;
             miniWheel.SpinToIndex(miniTargetIndex, () => miniSpinDone = true);
-            
+
             yield return new WaitUntil(() => miniSpinDone);
+            audioController.PlayBonusWheelSparkle();
             yield return new WaitForSeconds(0.5f);
         }
 
@@ -211,7 +239,7 @@ public class WheelBonusPanel : MonoBehaviour
     private int FindMiniWheelTargetIndex()
     {
         if (resultData.multiplierResult == null) return 0;
-        
+
         int targetVal = resultData.multiplierResult.Value;
         List<int> matches = new List<int>();
         var segments = miniWheel.SegmentDataList;
@@ -238,7 +266,8 @@ public class WheelBonusPanel : MonoBehaviour
         }
         else if (resultData.result.type == "freeGames")
         {
-            winAmountText.text = $"{resultData.result.count} FREE GAMES!";
+            //FreeGamesIntroPanel.SetActive(true);
+            FreeSpinCountText.text = $"{resultData.result.count} "; // FREE GAMES!";
         }
     }
 

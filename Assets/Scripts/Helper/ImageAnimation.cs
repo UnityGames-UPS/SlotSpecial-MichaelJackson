@@ -8,7 +8,8 @@ public class ImageAnimation : MonoBehaviour
     {
         NONE,
         PLAYING,
-        PAUSED
+        PAUSED,
+        FINISHED
     }
 
     public enum AnimationMode
@@ -105,6 +106,7 @@ public class ImageAnimation : MonoBehaviour
                 {
                     Invoke("AnimationProcess", delayBetweenAnimation + delayBetweenLoop);
                 }
+                currentAnimationState = ImageState.FINISHED;
             }
             else
             {

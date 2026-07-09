@@ -8,19 +8,39 @@ using System;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private AudioController audioController;
+
     [Header("Bonus UI")]
     [SerializeField] private WheelBonusPanel wheelBonusPanel;
     [SerializeField] private RectTransform wheelBonusRect;
+    [SerializeField] private GameObject WheelStartAnimation;
 
     [Header("UI References")]
     [SerializeField] private GameManager gameManager;
-    [SerializeField] private PopupManager popupManager; 
+    [SerializeField] private PopupManager popupManager;
     [SerializeField] private GameObject gameScreen;
     [SerializeField] private float initializationTimeout = 20f;
 
     [Header("Backgrounds")]
     [SerializeField] private GameObject normalSpinBackground;
     [SerializeField] private GameObject freeSpinBackground;
+    [SerializeField] private Image BlurrBg;
+    [SerializeField] private Sprite NormalBG;
+    [SerializeField] private Image SlotBg;
+    [SerializeField] private Sprite NormalSpinSlotBG;
+    [SerializeField] private Sprite FreeSpinSlotBG;
+    [SerializeField] private Sprite beatItBG;
+    [SerializeField] private Sprite smoothCriminalBG;
+    [SerializeField] private Image TitleImage;
+    [SerializeField] private Sprite defaultTitleImage;
+    [SerializeField] private Sprite beatItTitle;
+    [SerializeField] private Sprite smoothCriminalTitle;
+
+    [Header("Free Spin Intro Panel")]
+    [SerializeField] private Image IntroTitleImage;
+    [SerializeField] private Sprite beatItIntroTitle;
+    [SerializeField] private Sprite smoothCriminalIntroTitle;
+    [SerializeField] private Button buttonStartFreeSpin;
 
     [Header("Bet Controls")]
     [SerializeField] private TMP_Text betAmountText;
@@ -35,12 +55,22 @@ public class UIManager : MonoBehaviour
 
     [Header("Win Popup Panel")]
     [SerializeField] private GameObject winPopupPanel;
-    [SerializeField] private GameObject winRingObject;
-    [SerializeField] private ImageAnimation winPopupImageAnimation;
-    [SerializeField] private RectTransform winPopupImageRect;
+    [SerializeField] private ImageAnimation winPopupBGAnimation;
+    [SerializeField] private Image winPopupTitleImage;
+    [SerializeField] private ImageAnimation FirstFireWorkImageAnimation;
+    [SerializeField] private ImageAnimation SecondFireWorkImageAnimation;
+    [SerializeField] private ImageAnimation winCoinAnimation;
+    [SerializeField] private ImageAnimation winDiamondAnimation;
+    //[SerializeField] private GameObject winRingObject;
+    [SerializeField] private RectTransform winStatueImageRect;
     [SerializeField] private TMP_Text winPopupText;
-    [SerializeField] private List<Sprite> bigWinSprites;      // shown at >= 50x
-    [SerializeField] private List<Sprite> colossalWinSprites;  // shown at >= 100x
+    [SerializeField] private Sprite bigWinSprite;      // shown at >= 50x
+    [SerializeField] private Sprite colossalWinSprite;  // shown at >= 100x
+
+    [Header("Simple Win Popup Panel")]
+    [SerializeField] private GameObject winPanel;
+    [SerializeField] private CanvasGroup winPanelBG;
+    [SerializeField] private TMP_Text winText;
 
     [Header("Spin Controls")]
     [SerializeField] private Button spinButton;
@@ -49,7 +79,13 @@ public class UIManager : MonoBehaviour
     [Header("Auto Play Panel")]
     [SerializeField] private Button autoPlayButton;
     [SerializeField] private Transform autoPlayRotateObject;
+
+    [Header("Game Quit")]
     [SerializeField] private Button gameQuitButton;
+    [SerializeField] private GameObject Quit_Panel;
+    [SerializeField] private RectTransform quitRect;
+    [SerializeField] private Button Yes_Button;
+    [SerializeField] private Button No_Button;
 
 
     [Header("Audio Toggles")]
@@ -84,12 +120,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text nineMultiplierText;
     [SerializeField] private TMP_Text jackpotMultiplierText;
     [SerializeField] private TMP_Text bonusMultiplierText;
+
+
     [Header("Free Spin Count Display - Game Screen")]
     [SerializeField] private GameObject freeSpinCountContainer;
     [SerializeField] private TMP_Text freeSpinCountText;
     [SerializeField] private GameObject lastSpinLeftObject;
 
-  
+
 
     [Header("Animation Settings")]
     [SerializeField] private float winCountDuration = 0.25f;
@@ -154,6 +192,7 @@ public class UIManager : MonoBehaviour
         SetupGameRulesPanel();
         InitializeBackgrounds();
         StartCoroutine(LoadingSequence());
+        //StartCoroutine(PlayBigWinVisuals(35.50f, 0f)); // Preload the big win visuals to avoid first-time lag
     }
 
     private void InitializeBackgrounds()
@@ -168,7 +207,7 @@ public class UIManager : MonoBehaviour
         if (stopButton) stopButton.gameObject.SetActive(false);
         if (gameRulesPanel) gameRulesPanel.SetActive(false);
         if (winPopupPanel) winPopupPanel.SetActive(false);
-        if (winRingObject) winRingObject.SetActive(false);
+        //if (winRingObject) winRingObject.SetActive(false);
         if (freeSpinCountContainer) freeSpinCountContainer.SetActive(false);
         if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
         if (wheelBonusPanel) wheelBonusPanel.gameObject.SetActive(false);
@@ -221,15 +260,18 @@ public class UIManager : MonoBehaviour
 
     private void SetupButtons()
     {
-        if (betPlusButton)  betPlusButton.onClick.AddListener(() => { AudioManager.Instance?.PlayBetPlus();  gameManager.IncreaseBet(); });
-        if (betMinusButton) betMinusButton.onClick.AddListener(() => { AudioManager.Instance?.PlayBetMinus(); gameManager.DecreaseBet(); });
+        if (betPlusButton) betPlusButton.onClick.AddListener(() => { audioController.PlayUIButton(); gameManager.IncreaseBet(); });
+        if (betMinusButton) betMinusButton.onClick.AddListener(() => { audioController.PlayUIButton(); gameManager.DecreaseBet(); });
         if (spinButton) spinButton.onClick.AddListener(OnSpinButtonPressed);
         if (stopButton) stopButton.onClick.AddListener(OnStopButtonPressed);
 
-        if (autoPlayButton) autoPlayButton.onClick.AddListener(() => { AudioManager.Instance?.PlayButton(); gameManager.ToggleAutoPlay(); });
+        if (autoPlayButton) autoPlayButton.onClick.AddListener(() => { audioController.PlayUIButton(); gameManager.ToggleAutoPlay(); });
 
+        if (gameQuitButton) gameQuitButton.onClick.AddListener(() => { audioController.PlayUIButton(); ShowQuitPanel(); });
+        if (Yes_Button) Yes_Button.onClick.AddListener(() => { audioController.PlayUIButton(); OnExitButtonPressed(); });
+        if (No_Button) No_Button.onClick.AddListener(() => { audioController.PlayUIButton(); CloseQuitPanel(); });
 
-        if (gameQuitButton) gameQuitButton.onClick.AddListener(() => { AudioManager.Instance?.PlayButton(); OnExitButtonPressed(); });
+        if (buttonStartFreeSpin) buttonStartFreeSpin.onClick.AddListener(() => { FreeSpinStartButtonPressed(); });
 
     }
 
@@ -281,15 +323,15 @@ public class UIManager : MonoBehaviour
 
         foreach (var symbolInfo in config.symbols)
         {
-            var mults = (symbolInfo.scatterMultipliers != null && symbolInfo.scatterMultipliers.Count > 0) 
-                        ? symbolInfo.scatterMultipliers 
+            var mults = (symbolInfo.scatterMultipliers != null && symbolInfo.scatterMultipliers.Count > 0)
+                        ? symbolInfo.scatterMultipliers
                         : symbolInfo.multipliers;
 
             if (mults != null && mults.Count > 0)
             {
                 List<string> displayLines = new List<string>();
                 int currentMatchCount = 5;
-                
+
                 for (int i = 0; i < mults.Count; i++)
                 {
                     if (mults[i] > 0)
@@ -298,11 +340,11 @@ public class UIManager : MonoBehaviour
                     }
                     currentMatchCount--;
                 }
-                
+
                 if (displayLines.Count > 0)
                 {
                     string textValue = string.Join("\n", displayLines);
-                    
+
                     switch (symbolInfo.id)
                     {
                         case 0: if (wildMultiplierText) wildMultiplierText.text = textValue; break;
@@ -317,7 +359,7 @@ public class UIManager : MonoBehaviour
                         case 9: if (tenMultiplierText) tenMultiplierText.text = textValue; break;
                         case 10: if (nineMultiplierText) nineMultiplierText.text = textValue; break;
                         case 11: if (jackpotMultiplierText) jackpotMultiplierText.text = textValue; break;
-                        case 12: if (bonusMultiplierText) bonusMultiplierText.text = textValue; break;  
+                        case 12: if (bonusMultiplierText) bonusMultiplierText.text = textValue; break;
                     }
                 }
             }
@@ -330,7 +372,7 @@ public class UIManager : MonoBehaviour
 
         if (spinButton) spinButton.gameObject.SetActive(false);
         if (stopButton) stopButton.gameObject.SetActive(true);
-        
+
         if (gameManager.isInFreeSpins || gameManager.isAutoPlaying)
         {
             if (stopButton) stopButton.interactable = false;
@@ -352,9 +394,11 @@ public class UIManager : MonoBehaviour
         if (winPopupPanel)
         {
             winPopupPanel.SetActive(false);
-            if (winPopupImageAnimation) winPopupImageAnimation.StopAnimation();
+            winPopupTitleImage.gameObject.SetActive(false);
+            winPanel.SetActive(false);
+            //if (winPopupImageAnimation) winPopupImageAnimation.StopAnimation();
         }
-        if (winRingObject) winRingObject.SetActive(false);
+        //if (winRingObject) winRingObject.SetActive(false);
         isSpecialWinActive = false;
 
         // Immediately deduct the total bet from the displayed balance when spin is pressed
@@ -373,7 +417,9 @@ public class UIManager : MonoBehaviour
         double winAmount = result.winAmount;
         double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
-        if (multiplier >= 50)
+        // Big/colossal win popups never fire mid free-spins — the round-total check
+        // happens once, after free spins end (see ShowPostRoundWinSequence).
+        if (multiplier >= 50 && !gameManager.isInFreeSpins)
         {
             earlyBigWinPopupTriggered = true;
             if (winDisplayCoroutine != null) StopCoroutine(winDisplayCoroutine);
@@ -394,7 +440,7 @@ public class UIManager : MonoBehaviour
         // In free spins: animate to totalRoundWin (cumulative).
         // In normal spins: animate from 0 to winAmount.
         double targetWin = isFreeSpin ? result.freeGameData.totalRoundWin : result.winAmount;
-        double startVal  = isFreeSpin ? currentWinDisplayValue : 0;
+        double startVal = isFreeSpin ? currentWinDisplayValue : 0;
 
         if (targetWin > startVal)
         {
@@ -407,7 +453,7 @@ public class UIManager : MonoBehaviour
                 {
                     animFrom = x;
                     currentWinDisplayValue = x;
-                    if (winAmountText) winAmountText.text = System.Math.Round(x, 3).ToString("0.###");
+                    if (winAmountText) winAmountText.text = System.Math.Round(x, 3).ToString("F3");
                 },
                 targetWin,
                 winCountDuration
@@ -415,8 +461,9 @@ public class UIManager : MonoBehaviour
 
             double multiplier = gameManager.TotalBetAmount > 0 ? (result.winAmount / gameManager.TotalBetAmount) : 0;
 
-            // Only show the popup for Big Win (>= 50x) or Colossal Win (>= 100x)
-            if (multiplier >= 50 && !earlyBigWinPopupTriggered)
+            // Only show the popup for Big Win (>= 50x) or Colossal Win (>= 100x), and never
+            // mid free-spins — the round-total check happens once, after free spins end.
+            if (multiplier >= 30 && !earlyBigWinPopupTriggered && !gameManager.isInFreeSpins)
             {
                 ShowWinDisplay(result);
             }
@@ -470,15 +517,15 @@ public class UIManager : MonoBehaviour
             stopButton.gameObject.SetActive(true);
             stopButton.interactable = false;
         }
-        
+
         if (gameManager != null && gameManager.lastResult != null)
         {
             double winAmount = gameManager.lastResult.winAmount;
             double multiplier = gameManager.TotalBetAmount > 0 ? (winAmount / gameManager.TotalBetAmount) : 0;
-            
+
             if (multiplier >= 50)
             {
-                if (winRingObject) winRingObject.SetActive(true);
+                //if (winRingObject) winRingObject.SetActive(true);
             }
         }
     }
@@ -522,6 +569,31 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private IEnumerator WinPanelRoutine(double winAmount, System.Action onBackgroundOpaque = null)
+    {
+        if (winPanel == null || winPanelBG == null || winText == null)
+        {
+            onBackgroundOpaque?.Invoke();
+            yield break;
+        }
+        audioController.PlayNormalWin();
+        winText.text = System.Math.Round(winAmount, 3).ToString("0.###");
+        winPanelBG.alpha = 0f;
+        winPanel.SetActive(true);
+
+        yield return new WaitForSeconds(1.5f);
+
+        winPanelBG.DOFade(1f, 0.5f);
+        yield return new WaitForSeconds(0.5f);
+
+        // Background has just finished fading to fully opaque — safe moment for a
+        // caller to swap out whatever's behind it without the change being visible.
+        onBackgroundOpaque?.Invoke();
+
+        yield return new WaitForSeconds(1.0f);
+        winPanel.SetActive(false);
+    }
+
     private void ShowWinDisplay(SpinResult result)
     {
         if (winDisplayCoroutine != null) StopCoroutine(winDisplayCoroutine);
@@ -531,83 +603,12 @@ public class UIManager : MonoBehaviour
     private IEnumerator ShowWinDisplayCoroutine(SpinResult result, System.Action onComplete = null)
     {
         double winAmount = result.winAmount;
-        double totalBetAmount = gameManager.TotalBetAmount;
-        double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
-
         double startVal = gameManager.isInFreeSpins ? currentWinDisplayValue : 0;
-        double endVal = winAmount;
-        double popupWinAmount = winAmount;
 
         isSpecialWinActive = true;
         DisableControlsDuringWinAnimation();
 
-        AudioManager.Instance?.PlayWinOpeningJingle(multiplier);
-        AudioManager.Instance?.PlayWinPopupBg(multiplier);
-
-
-        List<Sprite> selectedSprites = null;
-        float popupTime = 2f; // Both tiers use 2 second popup
-
-        if (multiplier >= 100)
-        {
-            // Colossal Win
-            selectedSprites = colossalWinSprites;
-        }
-        else
-        {
-            // Big Win (>= 50x)
-            selectedSprites = bigWinSprites;
-        }
-
-        if (winPopupImageAnimation)
-        {
-            winPopupImageAnimation.textureArray = selectedSprites;
-        }
-
-        if (winPopupPanel) winPopupPanel.SetActive(true);
-
-        if (winPopupImageAnimation)
-        {
-            winPopupImageAnimation.StartAnimation();
-        }
-
-        float animDuration = popupTime - 1f;
-
-        if (winPopupImageRect)
-        {
-            winPopupImageRect.localScale = Vector3.zero;
-            winPopupImageRect.DOScale(Vector3.one, 0.5f).SetEase(Ease.OutBack).OnComplete(() => {
-                winPopupImageRect.DOScale(new Vector3(1.2f, 1.2f, 1.2f), animDuration - 0.5f).SetEase(Ease.Linear);
-            });
-        }
-
-        if (winPopupText)
-        {
-            winPopupText.text = "0";
-            double currentAnimVal = startVal;
-            DOTween.To(() => currentAnimVal, x => {
-                currentAnimVal = x;
-
-                double range = endVal - startVal;
-                double progress = range > 0 ? Math.Max(0, Math.Min(1, (currentAnimVal - startVal) / range)) : 1.0;
-
-                double currentPopupHit = Math.Round(progress * popupWinAmount, 2);
-                winPopupText.text = currentPopupHit.ToString();
-
-                double displayVal = Math.Round(currentAnimVal, 2);
-                if (winAmountText) winAmountText.text = displayVal.ToString();
-
-                currentWinDisplayValue = displayVal;
-            }, endVal, animDuration).SetEase(Ease.OutQuad);
-        }
-
-        yield return new WaitForSeconds(popupTime);
-
-        AudioManager.Instance?.StopWinPopupBg();
-
-        if (winPopupPanel) winPopupPanel.SetActive(false);
-        if (winPopupImageAnimation) winPopupImageAnimation.StopAnimation();
-        if (winRingObject) winRingObject.SetActive(false);
+        yield return StartCoroutine(PlayBigWinVisuals(winAmount, startVal));
 
         isSpecialWinActive = false;
         EnableControlsAfterWinAnimation();
@@ -619,6 +620,149 @@ public class UIManager : MonoBehaviour
         winDisplayCoroutine = null;
     }
 
+    /// <summary>
+    /// Plays the big/colossal win popup visuals (title sprite, statue drop, coin/diamond
+    /// animations, counting text) for winAmount, animating the counter from startVal.
+    /// Does not touch control-enable state or isSpecialWinActive — callers own that.
+    /// </summary>
+    private IEnumerator PlayBigWinVisuals(double winAmount, double startVal)
+    {
+
+        double totalBetAmount = gameManager.TotalBetAmount;
+        double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
+
+        double endVal = winAmount;
+        double popupWinAmount = winAmount;
+
+        AudioManager.Instance?.PlayWinOpeningJingle(multiplier);
+        AudioManager.Instance?.PlayWinPopupBg(multiplier);
+        if (multiplier >= 50)
+        {
+            audioController.PlayCollosalWin();
+        }
+        else
+        {
+            audioController.PlayBigWin();
+        }
+        FirstFireWorkImageAnimation.gameObject.SetActive(true);
+        FirstFireWorkImageAnimation.StartAnimation();
+        yield return new WaitUntil(() => FirstFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        FirstFireWorkImageAnimation.gameObject.SetActive(false);
+
+        // Colossal Win >= 50x, Big Win <= 50x
+        Sprite selectedSprite = multiplier >= 50 ? colossalWinSprite : bigWinSprite;
+        if (winPopupTitleImage) winPopupTitleImage.sprite = selectedSprite;
+        if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(true);
+
+        if (winPopupPanel) winPopupPanel.SetActive(true);
+        if (winPopupBGAnimation) winPopupBGAnimation.StartAnimation();
+
+        float popupTime = 8f;
+        float animDuration = popupTime - 1f;
+
+        if (winStatueImageRect)
+        {
+            winStatueImageRect.localPosition = new Vector3(0f, -2500f);
+            winStatueImageRect.DOLocalMoveY(2500, 6f).SetEase(Ease.Linear);
+            yield return new WaitForSeconds(4f);
+            if (multiplier >= 50)
+            {
+                if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(true);
+                if (winDiamondAnimation) winDiamondAnimation.gameObject.SetActive(true);
+                if (winDiamondAnimation) winDiamondAnimation.StartAnimation();
+                if (winCoinAnimation) winCoinAnimation.StartAnimation();
+            }
+            else
+            {
+                if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(true);
+                if (winCoinAnimation) winCoinAnimation.StartAnimation();
+            }
+            yield return new WaitForSeconds(2f);
+            // FirstFireWorkImageAnimation.gameObject.SetActive(true);
+            // FirstFireWorkImageAnimation.StartAnimation();
+            // yield return new WaitUntil(() => FirstFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+            // FirstFireWorkImageAnimation.gameObject.SetActive(false);
+            SecondFireWorkImageAnimation.gameObject.SetActive(true);
+            SecondFireWorkImageAnimation.StartAnimation();
+        }
+
+        if (winPopupText)
+        {
+            winPopupText.text = "0";
+            double currentAnimVal = startVal;
+            DOTween.To(() => currentAnimVal, x =>
+            {
+                currentAnimVal = x;
+
+                double range = endVal - startVal;
+                double progress = range > 0 ? Math.Max(0, Math.Min(1, (currentAnimVal - startVal) / range)) : 1.0;
+
+                double currentPopupHit = Math.Round(progress * popupWinAmount, 2);
+                winPopupText.text = currentPopupHit.ToString();
+
+                double displayVal = Math.Round(currentAnimVal, 2);
+                if (winAmountText) winAmountText.text = displayVal.ToString("F3");
+
+                currentWinDisplayValue = displayVal;
+            }, endVal, animDuration).SetEase(Ease.OutQuad);
+        }
+
+        yield return new WaitForSeconds(0.7f);
+
+        AudioManager.Instance?.StopWinPopupBg();
+
+        if (winPopupPanel) winPopupPanel.SetActive(false);
+        if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(false);
+        if (winDiamondAnimation) winDiamondAnimation.gameObject.SetActive(false);
+        if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(false);
+        yield return new WaitUntil(() => SecondFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        SecondFireWorkImageAnimation.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Post-round win sequence used in two places:
+    ///  1. After the last free spin (Beat It or Smooth Criminal) finishes, before returning to normal spins.
+    ///  2. After the wheel bonus resolves to a credits/multiplier win (not free games).
+    /// Shows the simple win panel first; the moment its background finishes fading to fully
+    /// opaque, onBackgroundOpaque fires — the right moment for the caller to swap out
+    /// whatever's behind it (masked by the popup instead of flashing through). If winAmount
+    /// is >= 50x (or >= 100x) the current bet, the big/colossal win popup plays right after.
+    /// The game is fully paused (no spin, no bet change, no autoplay) for the entire sequence.
+    /// </summary>
+    internal void ShowPostRoundWinSequence(double winAmount, System.Action onBackgroundOpaque, System.Action onComplete)
+    {
+        StartCoroutine(PostRoundWinRoutine(winAmount, onBackgroundOpaque, onComplete));
+    }
+
+    private IEnumerator PostRoundWinRoutine(double winAmount, System.Action onBackgroundOpaque, System.Action onComplete)
+    {
+        isSpecialWinActive = true;
+        DisableControlsDuringWinAnimation();
+
+        if (winAmount > 0)
+        {
+            yield return StartCoroutine(WinPanelRoutine(winAmount, onBackgroundOpaque));
+
+            double totalBetAmount = gameManager.TotalBetAmount;
+            double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
+
+            // Only Big Win (>= 50x) or Colossal Win (>= 100x) get the extra popup
+            if (multiplier >= 50)
+            {
+                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0));
+            }
+        }
+        else
+        {
+            // Nothing to mask the switch with — do it right away.
+            onBackgroundOpaque?.Invoke();
+        }
+
+        isSpecialWinActive = false;
+        EnableControlsAfterWinAnimation();
+        onComplete?.Invoke();
+    }
+
     #endregion
 
     #region Spin Button
@@ -626,11 +770,13 @@ public class UIManager : MonoBehaviour
     private void OnSpinButtonPressed()
     {
         if (gameManager.isAutoPlaying) return;
+        audioController.PlaySpinButton();
         gameManager.RequestSpin();
     }
 
     private void OnStopButtonPressed()
     {
+        audioController.PlaySpinButton();
         gameManager.RequestStopSpin();
     }
 
@@ -655,7 +801,7 @@ public class UIManager : MonoBehaviour
         if (betPlusButton) betPlusButton.interactable = true;
     }
 
-   
+
 
 
     #endregion
@@ -664,7 +810,7 @@ public class UIManager : MonoBehaviour
 
     internal void OnAutoPlayStarted()
     {
-        
+
         if (spinButton) spinButton.gameObject.SetActive(false);
         if (stopButton) stopButton.gameObject.SetActive(true);
         SetBetControlsEnabled(false);
@@ -743,9 +889,47 @@ public class UIManager : MonoBehaviour
     }
 
     #endregion
+    #region Quit Panel
+
+    private void ShowQuitPanel()
+    {
+        if (Quit_Panel == null) return;
+
+        Quit_Panel.SetActive(true);
+        RectTransform temprect = quitRect;
+
+        if (temprect)
+        {
+            temprect.localScale = Vector3.zero;
+            temprect.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack);
+        }
+    }
+
+    private void CloseQuitPanel()
+    {
+        if (Quit_Panel == null || !Quit_Panel.activeSelf) return;
+
+        RectTransform temprect = quitRect;
+        
+        if (temprect)
+        {
+            temprect.DOScale(Vector3.zero, 0.25f)
+                .SetEase(Ease.InBack)
+                .OnComplete(() =>
+                {
+                    Quit_Panel.SetActive(false);
+                    temprect.localScale = Vector3.one;
+                });
+        }
+        else
+        {
+            Quit_Panel.SetActive(false);
+        }
+    }
+
+    #endregion
 
     #region Settings Panel
-
 
     private void ShowGameRulesPanel()
     {
@@ -863,7 +1047,16 @@ public class UIManager : MonoBehaviour
 
     #region Free Spins
 
-    internal void OnFreeSpinsStarted(int spinsAwarded)
+    internal void FreeSpinStartButtonPressed()
+    {
+        gameManager.FreeGamesIntroPanel.GetComponent<CanvasGroup>().DOFade(0f, 0.5f).OnComplete(() =>
+        {
+            gameManager.FreeGamesIntroPanel.SetActive(false);
+            gameManager.freeSpinTrigger = true;
+        });
+    }
+
+    internal void OnFreeSpinsStarted(int spinsAwarded, string freeSpinType)
     {
         initialFreeSpins = spinsAwarded;
         totalFreeSpinsAwarded = spinsAwarded;
@@ -873,9 +1066,27 @@ public class UIManager : MonoBehaviour
         currentWinDisplayValue = 0;
         UpdateWinDisplay(0);
 
+        if (freeSpinType == "beatIt")
+        {
+            audioController.PlayBeatItStart();
+            freeSpinBackground.GetComponent<Image>().sprite = beatItBG;
+            BlurrBg.sprite = beatItBG;
+            TitleImage.sprite = beatItTitle;
+            IntroTitleImage.sprite = beatItIntroTitle;
+        }
+        else if (freeSpinType == "smoothCriminal")
+        {
+            audioController.PlayBeatItStart();
+            freeSpinBackground.GetComponent<Image>().sprite = smoothCriminalBG;
+            BlurrBg.sprite = smoothCriminalBG;
+            TitleImage.sprite = smoothCriminalTitle;
+            IntroTitleImage.sprite = smoothCriminalIntroTitle;
+        }
+
         if (normalSpinBackground) normalSpinBackground.SetActive(false);
         if (freeSpinBackground) freeSpinBackground.SetActive(true);
-        
+        if (SlotBg) SlotBg.sprite = FreeSpinSlotBG;
+
         if (freeSpinCountContainer) freeSpinCountContainer.SetActive(true);
         UpdateFreeSpinCount(spinsAwarded);
 
@@ -886,15 +1097,23 @@ public class UIManager : MonoBehaviour
 
     internal void OnFreeSpinsEnded(double serverTotalRoundWin, int serverTotalSpinsUsed)
     {
+        audioController.PlayBackground();
+        gameManager.freeSpinTrigger = false;
         if (normalSpinBackground) normalSpinBackground.SetActive(true);
+        BlurrBg.sprite = NormalBG;
         if (freeSpinBackground) freeSpinBackground.SetActive(false);
+        if (SlotBg) SlotBg.sprite = NormalSpinSlotBG;
+
+        TitleImage.sprite = defaultTitleImage;
 
         if (freeSpinCountContainer) freeSpinCountContainer.SetActive(false);
         if (lastSpinLeftObject) lastSpinLeftObject.SetActive(false);
 
         if (spinButton) spinButton.gameObject.SetActive(true);
         if (stopButton) stopButton.gameObject.SetActive(false);
-        SetBetControlsEnabled(true);
+        // Note: bet controls are re-enabled once, at the true end of the win-popup
+        // sequence, by EnableControlsAfterWinAnimation — not here, since this now runs
+        // mid-sequence (masked behind the opaque win panel) rather than after it.
     }
 
     internal void UpdateFreeSpinCount(int remainingSpins)
@@ -986,32 +1205,78 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        wheelBonusPanel.gameObject.SetActive(true);
-        wheelBonusRect.localScale = Vector3.one;
-        
-        if (wheelBonusRect != null)
-        {
-            wheelBonusRect.localScale = Vector3.zero;
-            wheelBonusRect.DOScale(1f, 0.4f).SetEase(Ease.OutBack);
-        }
+        StartCoroutine(BonusAnimation());
 
         wheelBonusPanel.Setup(config, result, (finalResult) =>
         {
-            if (wheelBonusRect != null)
+            if (finalResult.result.type == "freeGames")
             {
-                wheelBonusRect.DOScale(0f, 0.3f).SetEase(Ease.InBack).OnComplete(() =>
-                {
-                    wheelBonusPanel.gameObject.SetActive(false);
-                    onComplete?.Invoke(finalResult);
-                });
-            }
-            else
-            {
+                // Free games: hand off immediately so GameManager can start the free-spin intro.
                 wheelBonusPanel.gameObject.SetActive(false);
                 onComplete?.Invoke(finalResult);
             }
+            else
+            {
+                // Credits / multiplier win: keep the wheel panel up and run the win panel
+                // (plus big/colossal win, if it qualifies) over it. The wheel panel only
+                // gets hidden once the win panel is fully opaque, so returning to the
+                // normal spin screen is masked instead of flashing through underneath.
+                StartCoroutine(WheelBonusWinPanelSequence(finalResult, onComplete));
+            }
         });
+    }
 
+    private IEnumerator WheelBonusWinPanelSequence(ServerWheelBonusResult result, Action<ServerWheelBonusResult> onComplete)
+    {
+        isSpecialWinActive = true;
+        DisableControlsDuringWinAnimation();
+
+        double winAmount = result.creditAward;
+
+        if (winAmount > 0)
+        {
+            yield return StartCoroutine(WinPanelRoutine(winAmount, onBackgroundOpaque: () =>
+            {
+                // The win panel is now fully opaque — safe to hide the wheel bonus panel
+                // behind it without the player ever seeing the normal spin screen underneath.
+                if (wheelBonusPanel != null) wheelBonusPanel.gameObject.SetActive(false);
+                audioController.PlayBackground();
+            }));
+
+            double totalBetAmount = gameManager.TotalBetAmount;
+            double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
+
+            if (multiplier >= 50)
+            {
+                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0));
+            }
+        }
+        else
+        {
+            // Nothing to show — just hide the wheel panel and move on.
+            if (wheelBonusPanel != null) wheelBonusPanel.gameObject.SetActive(false);
+        }
+
+        isSpecialWinActive = false;
+        EnableControlsAfterWinAnimation();
+        onComplete?.Invoke(result);
+    }
+
+    private IEnumerator BonusAnimation()
+    {
+        WheelStartAnimation.gameObject.SetActive(true);
+        audioController.PlayBonusWheelStart();
+        ImageAnimation animObj = WheelStartAnimation.GetComponent<ImageAnimation>();
+        animObj.StartAnimation();
+
+        yield return new WaitForSeconds(1.5f);
+        wheelBonusPanel.gameObject.SetActive(true);
+        wheelBonusRect.gameObject.SetActive(true);
+        wheelBonusRect.localScale = Vector3.one;
+
+        yield return new WaitUntil(() => animObj.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        WheelStartAnimation.gameObject.SetActive(false);
+        yield return new WaitForSeconds(0.5f);
         wheelBonusPanel.StartBonus();
     }
 
@@ -1021,7 +1286,7 @@ public class UIManager : MonoBehaviour
     {
         currentWinDisplayValue = amount;
         if (winAmountText)
-            winAmountText.text = amount.ToString();
+            winAmountText.text = amount.ToString("F3");
     }
 
     internal void AnimateWinDisplay(double targetAmount)
@@ -1050,6 +1315,6 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private static string FormatBalance(double value)
     {
-        return System.Math.Round(value, 3).ToString("0.###");
+        return System.Math.Round(value, 3).ToString("F3");
     }
 }
