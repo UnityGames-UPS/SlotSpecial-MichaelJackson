@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
+// FIX: Now orientation-aware. SwipeHandler detects downward swipes for the bonus wheel.
+// In landscape mode, that's a downward Y-axis swipe.
+// In portrait mode (UIWrapper rotated -90 degrees), a visual downward swipe becomes 
+// a leftward swipe in screen coordinates, so we check the X-axis instead.
 public class SwipeHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public UnityEvent OnSwipeDown;
@@ -12,6 +16,7 @@ public class SwipeHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Debug.Log($"[SwipeHandler] BeginDrag fired, pointerId={eventData.pointerId}, isLandscape={OrientationChange.IsLandscapeOrientation}");
         startPosition = eventData.position;
         swipeDetected = false;
     }
@@ -21,17 +26,33 @@ public class SwipeHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (swipeDetected) return;
 
         Vector2 currentPosition = eventData.position;
-        float distance = startPosition.y - currentPosition.y; // Top to bottom is positive distance
+        bool swipeTriggered = false;
 
-        if (distance > minSwipeDistance)
+        if (OrientationChange.IsLandscapeOrientation)
+        {
+            // Landscape: check for downward swipe (top to bottom = positive distance down Y-axis)
+            float distance = startPosition.y - currentPosition.y;
+            swipeTriggered = distance > minSwipeDistance;
+        }
+        else
+        {
+            // Portrait: UIWrapper is rotated -90 degrees. A visual downward swipe becomes 
+            // a leftward swipe in screen coordinates. Check X-axis (left = negative).
+            float distance = startPosition.x - currentPosition.x;
+            swipeTriggered = distance > minSwipeDistance;
+        }
+
+        if (swipeTriggered)
         {
             swipeDetected = true;
+            Debug.Log($"[SwipeHandler] Swipe detected! isLandscape={OrientationChange.IsLandscapeOrientation}");
             OnSwipeDown?.Invoke();
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // Not strictly needed if we detect during drag, but good for completeness
+        // Reset on drag end for next gesture
+        swipeDetected = false;
     }
 }

@@ -1,0 +1,741 @@
+fileFormatVersion: 2
+guid: 85b474fccc9644ee7a69e545d5d25afc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6146802653863753845
+    second: star rain 2_00189_0
+  - first:
+      213: 1689495265407084463
+    second: star rain 2_00189_1
+  - first:
+      213: -7954012636932256299
+    second: star rain 2_00189_2
+  - first:
+      213: -6048789640923143457
+    second: star rain 2_00189_3
+  - first:
+      213: 8057742110388423209
+    second: star rain 2_00189_4
+  - first:
+      213: 8330437385016604686
+    second: star rain 2_00189_5
+  - first:
+      213: 2875262156484152528
+    second: star rain 2_00189_6
+  - first:
+      213: 6839903098354970982
+    second: star rain 2_00189_7
+  - first:
+      213: -1883010142263845107
+    second: star rain 2_00189_8
+  - first:
+      213: 8175082815766865887
+    second: star rain 2_00189_9
+  - first:
+      213: -8451109906218570357
+    second: star rain 2_00189_10
+  - first:
+      213: -2411117193552008312
+    second: star rain 2_00189_11
+  - first:
+      213: -8588384284692052899
+    second: star rain 2_00189_12
+  - first:
+      213: 1982265614307763378
+    second: star rain 2_00189_13
+  - first:
+      213: -7746172908638866516
+    second: star rain 2_00189_14
+  - first:
+      213: -377952761261831838
+    second: star rain 2_00189_15
+  - first:
+      213: -1577518629050941200
+    second: star rain 2_00189_16
+  - first:
+      213: -3997626798672178772
+    second: star rain 2_00189_17
+  - first:
+      213: -6088870243540430383
+    second: star rain 2_00189_18
+  - first:
+      213: -8086079620341761859
+    second: star rain 2_00189_19
+  - first:
+      213: -3408126438346643195
+    second: star rain 2_00189_20
+  - first:
+      213: 2061108495367288162
+    second: star rain 2_00189_21
+  - first:
+      213: -3149244318631196768
+    second: star rain 2_00189_22
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: star rain 2_00189_0
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 244
+        width: 112
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b87c500bd8b22baa0800000000000000
+      internalID: -6146802653863753845
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_1
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 223
+        width: 171
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa72b481efa427710800000000000000
+      internalID: 1689495265407084463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_2
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 254
+        width: 27
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dd4fac16abad9190800000000000000
+      internalID: -7954012636932256299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_3
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 261
+        width: 20
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd2a6b39ed16e0ca0800000000000000
+      internalID: -6048789640923143457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_4
+      rect:
+        serializedVersion: 2
+        x: 338
+        y: 213
+        width: 142
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92a8865f1c9d2df60800000000000000
+      internalID: 8057742110388423209
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_5
+      rect:
+        serializedVersion: 2
+        x: 388
+        y: 242
+        width: 92
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e087c854aa8ab9370800000000000000
+      internalID: 8330437385016604686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_6
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 247
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dc8c5192bbf6e720800000000000000
+      internalID: 2875262156484152528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_7
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 172
+        width: 177
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 661ba8be0a73cee50800000000000000
+      internalID: 6839903098354970982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_8
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 243
+        width: 44
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0fd7e190443ed5e0800000000000000
+      internalID: -1883010142263845107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_9
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 100
+        width: 299
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd72f2be18ab37170800000000000000
+      internalID: 8175082815766865887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_10
+      rect:
+        serializedVersion: 2
+        x: 299
+        y: 223
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b8dae02f050a7ba80800000000000000
+      internalID: -8451109906218570357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_11
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 198
+        width: 16
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88bee76efadf98ed0800000000000000
+      internalID: -2411117193552008312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 182
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d54026c0ffdefc880800000000000000
+      internalID: -8588384284692052899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_13
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 144
+        width: 72
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b4294fd21c628b10800000000000000
+      internalID: 1982265614307763378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_14
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 184
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca373d3d7c0108490800000000000000
+      internalID: -7746172908638866516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_15
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 101
+        width: 143
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2694c1357fd31caf0800000000000000
+      internalID: -377952761261831838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_16
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 144
+        width: 73
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f08bd83a278b1ae0800000000000000
+      internalID: -1577518629050941200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_17
+      rect:
+        serializedVersion: 2
+        x: 375
+        y: 109
+        width: 105
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca110906b939588c0800000000000000
+      internalID: -3997626798672178772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_18
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 25
+        width: 480
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d1935216ccff7ba0800000000000000
+      internalID: -6088870243540430383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_19
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 94
+        width: 50
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db8f00c5d6978cf80800000000000000
+      internalID: -8086079620341761859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_20
+      rect:
+        serializedVersion: 2
+        x: 248
+        y: 86
+        width: 31
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5092bb4bf07e3b0d0800000000000000
+      internalID: -3408126438346643195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_21
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 67
+        width: 168
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26538ed91478a9c10800000000000000
+      internalID: 2061108495367288162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star rain 2_00189_22
+      rect:
+        serializedVersion: 2
+        x: 450
+        y: 83
+        width: 30
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a702154af2ab44d0800000000000000
+      internalID: -3149244318631196768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      star rain 2_00189_0: -6146802653863753845
+      star rain 2_00189_1: 1689495265407084463
+      star rain 2_00189_10: -8451109906218570357
+      star rain 2_00189_11: -2411117193552008312
+      star rain 2_00189_12: -8588384284692052899
+      star rain 2_00189_13: 1982265614307763378
+      star rain 2_00189_14: -7746172908638866516
+      star rain 2_00189_15: -377952761261831838
+      star rain 2_00189_16: -1577518629050941200
+      star rain 2_00189_17: -3997626798672178772
+      star rain 2_00189_18: -6088870243540430383
+      star rain 2_00189_19: -8086079620341761859
+      star rain 2_00189_2: -7954012636932256299
+      star rain 2_00189_20: -3408126438346643195
+      star rain 2_00189_21: 2061108495367288162
+      star rain 2_00189_22: -3149244318631196768
+      star rain 2_00189_3: -6048789640923143457
+      star rain 2_00189_4: 8057742110388423209
+      star rain 2_00189_5: 8330437385016604686
+      star rain 2_00189_6: 2875262156484152528
+      star rain 2_00189_7: 6839903098354970982
+      star rain 2_00189_8: -1883010142263845107
+      star rain 2_00189_9: 8175082815766865887
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

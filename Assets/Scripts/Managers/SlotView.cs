@@ -119,9 +119,18 @@ public class SlotView : MonoBehaviour
     [SerializeField] private ImageAnimation stackedWildMJAnimation;
     [SerializeField] private List<ImageAnimation> stackedwildAnimationReelObj;
     [SerializeField] private List<GameObject> stackedWildReels;
+    [SerializeField] private List<ReelImages> stackedWilImages = new List<ReelImages> { };
+
+    [Header("MoonWalk Wild Objects")]
+    [SerializeField] private ImageAnimation MoonWalkWildAnimationObj;
+    [SerializeField] private GameObject MoonWalkWildParentSlotObj;
+    [SerializeField] private List<ReelImages> moonWalkWildSlotObj = new List<ReelImages> { };
+    [SerializeField] private List<ReelImages> moonWalkWildSlotRevealObj = new List<ReelImages> { };
+
+
     private List<int> stackedAnimationSequence = new List<int> { 0, 4, 2, 3, 1, 4, 0, 3, 2 };
     internal bool stackWildAnimFinished = true;
-
+    internal bool moonWalkWildAnimFinished = true;
 
     private float middlePosition = 0f;
     private float cycleDistance;
@@ -516,15 +525,72 @@ public class SlotView : MonoBehaviour
     #endregion
 
     #region Stop Spin
-
-    internal void ShowStackedWilds(List<int> stackedWildPositions)
+    internal void ShowMoonWalkWilds(List<List<int>> moonWalkWildPositions, List<List<int>> resultmatrix)
     {
+        moonWalkWildAnimFinished = false;
+        if (moonWalkWildPositions == null) return;
+        foreach (var sw in moonWalkWildPositions)
+        {
+            int row = sw[0];   // was col
+            int col = sw[1];   // was row
+            int symbolId = resultmatrix[col][row];
+            Sprite tempSprite = GetSymbolSprite(symbolId);
+            moonWalkWildSlotObj[col].images[row].sprite = tempSprite;
+            moonWalkWildSlotObj[col].images[row].type = Image.Type.Filled;
+            moonWalkWildSlotObj[col].images[row].fillMethod = Image.FillMethod.Horizontal;
+            moonWalkWildSlotObj[col].images[row].fillOrigin = 1;
+            moonWalkWildSlotObj[col].images[row].fillAmount = 0f;
+        }
+        StartCoroutine(moonWalkWildAnimation(moonWalkWildPositions));
+    }
+
+    private IEnumerator moonWalkWildAnimation(List<List<int>> moonWalkWildPositions)
+    {
+        MoonWalkWildParentSlotObj.SetActive(true);
+        MoonWalkWildAnimationObj.gameObject.SetActive(true);
+        MoonWalkWildAnimationObj.StartAnimation();
+        yield return new WaitForSeconds(2.7f);
+        for (int i = 4; i >= 0; i--)
+        {
+            foreach (var sw in moonWalkWildPositions)
+            {
+                int row = sw[0];   // was col
+                int col = sw[1];   // was row
+                if (i == col)
+                {
+                    moonWalkWildSlotRevealObj[col].images[row].gameObject.SetActive(true);
+                    moonWalkWildSlotRevealObj[col].images[row].GetComponent<ImageAnimation>().AnimationSpeed = 60f;
+                    moonWalkWildSlotRevealObj[col].images[row].GetComponent<ImageAnimation>().StartAnimation();
+                    moonWalkWildSlotObj[col].images[row].gameObject.SetActive(true);
+                    moonWalkWildSlotObj[col].images[row].DOFillAmount(1f, 0.5f).SetEase(Ease.Linear);
+                }
+            }
+            yield return new WaitForSeconds(0.4f);
+        }
+
+        yield return new WaitUntil(() => MoonWalkWildAnimationObj.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        MoonWalkWildAnimationObj.gameObject.SetActive(false);
+        MoonWalkWildParentSlotObj.SetActive(false);
+        moonWalkWildAnimFinished = true;
+    }
+
+    internal void ShowStackedWilds(List<int> stackedWildPositions, List<List<int>> resultmatrix)
+    {
+        stackWildAnimFinished = false;
         // Debug.Log("Called");
         // Debug.Log(stackedWildPositions==null);
         // Debug.Log(stackedWildPositions.Count!=5);
         if (stackedWildPositions == null || stackedWildPositions.Count >= 5) return;
         //Debug.Log("yoyo");
-        stackWildAnimFinished = false;
+        foreach (var sw in stackedWildPositions)
+        {
+            for (int i = 0; i < resultmatrix[sw].Count; i++)
+            {
+                int symbolId = resultmatrix[sw][i];
+                Sprite tempSprite = GetSymbolSprite(symbolId);
+                stackedWilImages[sw].images[i].sprite = tempSprite;
+            }
+        }
         StartCoroutine(stackedWildAnimation(stackedWildPositions));
     }
 
@@ -565,11 +631,25 @@ public class SlotView : MonoBehaviour
         stackWildAnimFinished = true;
     }
 
-    internal void HideAllStackWildUI()
+    internal void HideAllStackWildAndMoonWalkWildUI()
     {
         for (int i = 0; i < stackedWildReels.Count; i++)
         {
             stackedWildReels[i].SetActive(false);
+        }
+        for (int i = 0; i < moonWalkWildSlotObj.Count; i++)
+        {
+            for (int j = 0; j < moonWalkWildSlotObj[i].images.Count; j++)
+            {
+                moonWalkWildSlotObj[i].images[j].gameObject.SetActive(false);
+            }
+        }
+        for (int i = 0; i < moonWalkWildSlotRevealObj.Count; i++)
+        {
+            for (int j = 0; j < moonWalkWildSlotRevealObj[i].images.Count; j++)
+            {
+                moonWalkWildSlotRevealObj[i].images[j].gameObject.SetActive(false);
+            }
         }
     }
 
@@ -904,19 +984,15 @@ public class SlotView : MonoBehaviour
             0
         );
 
-        AudioManager.Instance?.PlayReelStop();
-
         if (currentDisplayMatrix != null && columnIndex < currentDisplayMatrix.Count)
         {
-            bool hasBonus = false;
-            bool hasWild = false;
+
             foreach (int sym in currentDisplayMatrix[columnIndex])
             {
-                if (IsBonusSymbol(sym)) hasBonus = true;
-                if (IsWildSymbol(sym)) hasWild = true;
+                // if (IsBonusSymbol(sym)) hasBonus = true;
+                // if (IsWildSymbol(sym)) hasWild = true;
             }
-            if (hasBonus) AudioManager.Instance?.PlayBonusHit();
-            else if (hasWild) AudioManager.Instance?.PlayWildHit();
+
         }
 
         if (isQuickStop)
@@ -1018,6 +1094,10 @@ public class SlotView : MonoBehaviour
         {
             imageAnim.transform.localScale = new Vector3(1.09f, 1.09f, 1.09f);
             audioController.PlayBonusIconPop();
+        }
+        else
+        {
+            imageAnim.transform.localScale = new Vector3(1f, 1f, 1f);
         }
         BuildSymbolAnimationSequence(symbolImage, animGO, imageAnim, animSprites, loopCount, 0f);
     }
@@ -1158,7 +1238,6 @@ public class SlotView : MonoBehaviour
             }
         }
         audioController.PlayWinLine();
-        AudioManager.Instance?.PlayWinLine();
 
         foreach (int flatIndex in uniquePositions)
         {
@@ -1184,7 +1263,6 @@ public class SlotView : MonoBehaviour
 
         yield return new WaitForSeconds(lineDuration);
 
-        AudioManager.Instance?.StopWinLine();
         KillWinTweens(false, true);
 
         onComplete?.Invoke();
@@ -1300,7 +1378,6 @@ public class SlotView : MonoBehaviour
             StopCoroutine(winAnimationCoroutine);
             winAnimationCoroutine = null;
         }
-        AudioManager.Instance?.StopWinLine();
 
         // Stop all win animations and disable animation GameObjects
         if (winAnimationColumns != null)

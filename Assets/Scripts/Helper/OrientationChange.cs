@@ -16,6 +16,10 @@ public class OrientationChange : MonoBehaviour
   private Tween rotationTween;
   private Coroutine rotationRoutine;
   private bool isLandscape;
+
+  // FIX: expose current orientation state so SwipeHandler can adapt its swipe detection axis
+  public static bool IsLandscapeOrientation { get; private set; } = true;
+
   private void Awake()
   {
     ReferenceAspect = CanvasScaler.referenceResolution;
@@ -49,6 +53,7 @@ public class OrientationChange : MonoBehaviour
   private void ApplyMatch(int width, int height)
   {
     isLandscape = width > height;
+    IsLandscapeOrientation = isLandscape; // FIX: update static state for swipe handlers
 
     Quaternion targetRotation = isLandscape ? Quaternion.identity : Quaternion.Euler(0, 0, -90);
     if (rotationTween != null && rotationTween.IsActive()) rotationTween.Kill();

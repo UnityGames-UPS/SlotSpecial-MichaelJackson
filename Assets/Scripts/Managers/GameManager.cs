@@ -185,8 +185,13 @@ public class GameManager : MonoBehaviour
 
         if (lastResult.hasStackedWild)
         {
-            slotView.ShowStackedWilds(lastResult.stackedWildReels);
-            yield return new WaitUntil(()=> slotView.stackWildAnimFinished);
+            slotView.ShowStackedWilds(lastResult.stackedWildReels, lastResult.resultMatrix);
+            yield return new WaitUntil(() => slotView.stackWildAnimFinished);
+        }
+        if (lastResult.hasMoonwalkWild)
+        {
+            slotView.ShowMoonWalkWilds(lastResult.moonwalkWildPositions, lastResult.resultMatrix);
+            yield return new WaitUntil(() => slotView.moonWalkWildAnimFinished);
         }
 
         if (slotView != null && lastResult.resultMatrix != null)
@@ -210,7 +215,7 @@ public class GameManager : MonoBehaviour
 
     private void OnReelsStoppedComplete()
     {
-        slotView.HideAllStackWildUI();
+        slotView.HideAllStackWildAndMoonWalkWildUI();
         if (lastResult.wheelBonusTriggered)
         {
             StartWheelBonus(lastResult.wheelBonusResult);
@@ -479,20 +484,20 @@ public class GameManager : MonoBehaviour
         FreeGamesIntroPanel.GetComponent<CanvasGroup>().alpha = 0f;
         FreeGamesIntroPanel.SetActive(true);
         FreeGamesIntroPanel.GetComponent<CanvasGroup>().DOFade(1f, 0.3f).SetEase(Ease.InOutSine);
-        yield return new WaitUntil(()=> freeSpinTrigger);
-        if(freeSpinType == "beatIt")
+        yield return new WaitUntil(() => freeSpinTrigger);
+        if (freeSpinType == "beatIt")
         {
             audioController.PlayBeatItBackground();
             videoManager.isVideoPlaying = true;
             videoManager.PlayVideo(0);
         }
-        if(freeSpinType == "smoothCriminal")
+        if (freeSpinType == "smoothCriminal")
         {
             videoManager.isVideoPlaying = true;
             videoManager.PlayVideo(2);
         }
-        yield return new WaitUntil(()=> videoManager.isVideoPlaying == false);
-        if(freeSpinType == "smoothCriminal")
+        yield return new WaitUntil(() => videoManager.isVideoPlaying == false);
+        if (freeSpinType == "smoothCriminal")
         {
             audioController.PlaySmoothCriminalBackground();
         }

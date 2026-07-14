@@ -43,7 +43,7 @@ internal class AudioController : MonoBehaviour
     [SerializeField] private Sprite MusicOffSprite;
 
     private bool isGameMuted = false;
-    private bool isMusicMuted = false;
+    internal bool isMusicMuted = false;
 
     private void Start()
     {

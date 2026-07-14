@@ -164,6 +164,7 @@ public class SocketIOManager : MonoBehaviour
 
     private void OnSocketConnected(ConnectResponse resp)
     {
+        Debug.Log("New Build");
         Debug.Log("[SocketIO] Connected");
 
         isConnected = true;

@@ -24,6 +24,7 @@ public class WheelBonusPanel : MonoBehaviour
     [SerializeField] private GameObject SparkleAnimObj;
     [SerializeField] private ImageAnimation MiniWheelStartAnim;
     [SerializeField] private TMP_Text FreeSpinCountText;
+    [SerializeField] private Button SwipeButton;
 
     [Header("Settings")]
     [SerializeField] private float delayBetweenWheels = 1f;
@@ -40,6 +41,10 @@ public class WheelBonusPanel : MonoBehaviour
         {
             swipeHandler.OnSwipeDown.AddListener(OnSwipeDetected);
         }
+        // if(SwipeButton != null)
+        // {
+        //     SwipeButton.onClick.AddListener(OnSwipeDetected);
+        // }
     }
 
     private void OnSwipeDetected()

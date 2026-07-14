@@ -18,6 +18,7 @@ public class VideoManager : MonoBehaviour
     [SerializeField] private AudioSource MusicAudioSource;
 
     [Header("Video Configurations")]
+    [SerializeField] private AudioController audioController;
     [SerializeField] private VideoPlayer videoPlayer;
     [SerializeField] private GameObject videoDisplayPanel;
     [SerializeField] private VideoScenarioData[] videoScenarios;
@@ -119,7 +120,7 @@ public class VideoManager : MonoBehaviour
         isVideoPlaying = true;
         Debug.Log("Video started playing");
 
-        if (MusicAudioSource.clip != null)
+        if (MusicAudioSource.clip != null && !audioController.isMusicMuted)
         {
             MusicAudioSource.Play();
         }

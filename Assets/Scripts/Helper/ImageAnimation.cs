@@ -189,39 +189,46 @@ public class ImageAnimation : MonoBehaviour
     {
         if (textureArray == null || textureArray.Count == 0) return;
 
+        // FIX: Previously this method only (re)started the animation loop when
+        // currentAnimationState == NONE. If a prior run was interrupted (e.g. a
+        // coroutine calling this was stopped mid-flight, or the object was left
+        // active) the state could be stuck at PLAYING/PAUSED/FINISHED, and this
+        // guard made StartAnimation() silently do nothing — CancelInvoke would
+        // cancel any pending call but no new one would ever be scheduled, so
+        // currentAnimationState would never reach FINISHED again. Any caller
+        // waiting on that state (e.g. WaitUntil(() => ... == FINISHED)) would
+        // then hang forever. StartAnimation() is now unconditional/idempotent:
+        // it always cancels whatever was pending and starts a clean run.
         CancelInvoke(nameof(AnimationProcess));
         indexOfTexture = 0;
         currentLoopCount = 0;
-        
+
         // Reset two-phase tracking
         currentPhase = 1;
         phase1CurrentLoop = 0;
         phase2CurrentLoop = 0;
 
-        if (currentAnimationState == ImageState.NONE)
+        RevertToInitialState();
+
+        if (useDynamicFramerate && textureArray != null && textureArray.Count > 0)
         {
-            RevertToInitialState();
-            
-            if (useDynamicFramerate && textureArray != null && textureArray.Count > 0)
-            {
-                delayBetweenAnimation = dynamicLoopDuration / textureArray.Count;
-            }
-            else
-            {
-                delayBetweenAnimation = idealFrameRate * (float)textureArray.Count / AnimationSpeed;
-            }
-            
-            currentAnimationState = ImageState.PLAYING;
-            
-            // Skip Phase 1 if in TWO_PHASE mode and loop count is 0
-            if (animationMode == AnimationMode.TWO_PHASE && phase1LoopCount == 0)
-            {
-                currentPhase = 2;
-                indexOfTexture = phase2StartIndex;
-            }
-            
-            Invoke("AnimationProcess", delayBetweenAnimation);
+            delayBetweenAnimation = dynamicLoopDuration / textureArray.Count;
         }
+        else
+        {
+            delayBetweenAnimation = idealFrameRate * (float)textureArray.Count / AnimationSpeed;
+        }
+
+        currentAnimationState = ImageState.PLAYING;
+
+        // Skip Phase 1 if in TWO_PHASE mode and loop count is 0
+        if (animationMode == AnimationMode.TWO_PHASE && phase1LoopCount == 0)
+        {
+            currentPhase = 2;
+            indexOfTexture = phase2StartIndex;
+        }
+
+        Invoke("AnimationProcess", delayBetweenAnimation);
     }
 
     public void PauseAnimation()

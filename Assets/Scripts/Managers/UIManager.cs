@@ -171,14 +171,36 @@ public class UIManager : MonoBehaviour
             else if (Input.GetMouseButtonUp(0) && isSwiping)
             {
                 Vector2 touchEndPos = Input.mousePosition;
-                float deltaX = touchEndPos.x - touchStartPos.x;
 
-                if (Mathf.Abs(deltaX) > swipeThreshold)
+                // FIX: orientation-aware swipe detection for rules/info page navigation.
+                // In landscape mode, the pages scroll horizontally (check X-axis).
+                // In portrait mode (UIWrapper rotated -90 degrees), a visual horizontal swipe 
+                // becomes a vertical swipe in screen coordinates (check Y-axis).
+                if (OrientationChange.IsLandscapeOrientation)
                 {
-                    if (deltaX < 0)
-                        NextRulesPage();
-                    else
-                        PrevRulesPage();
+                    // Landscape: standard horizontal swipe (left/right on X-axis)
+                    float deltaX = touchEndPos.x - touchStartPos.x;
+                    if (Mathf.Abs(deltaX) > swipeThreshold)
+                    {
+                        if (deltaX < 0)
+                            NextRulesPage();   // Swipe left -> next page
+                        else
+                            PrevRulesPage();   // Swipe right -> prev page
+                    }
+                }
+                else
+                {
+                    // Portrait: UI is rotated -90 degrees. A visual horizontal swipe becomes 
+                    // a vertical swipe in screen coordinates. Check Y-axis instead.
+                    // Swipe up (positive deltaY) -> next page, swipe down (negative deltaY) -> prev page
+                    float deltaY = touchEndPos.y - touchStartPos.y;
+                    if (Mathf.Abs(deltaY) > swipeThreshold)
+                    {
+                        if (deltaY > 0)
+                            NextRulesPage();   // Swipe up -> next page
+                        else
+                            PrevRulesPage();   // Swipe down -> prev page
+                    }
                 }
                 isSwiping = false;
             }
@@ -197,7 +219,11 @@ public class UIManager : MonoBehaviour
 
     private void InitializeBackgrounds()
     {
-        if (normalSpinBackground) normalSpinBackground.SetActive(true);
+        if (normalSpinBackground)
+        {
+            normalSpinBackground.SetActive(true);
+            normalSpinBackground.GetComponentInChildren<ImageAnimation>().StartAnimation();
+        }
         if (freeSpinBackground) freeSpinBackground.SetActive(false);
     }
 
@@ -247,8 +273,6 @@ public class UIManager : MonoBehaviour
         }
         // ------------------------------
 
-        AudioManager.Instance?.PlayGameStart();
-        AudioManager.Instance?.PlayBgMusic();
         InitializeUI();
     }
 
@@ -284,15 +308,11 @@ public class UIManager : MonoBehaviour
         // Audio toggles — restore state from AudioManager then wire callbacks
         if (musicToggle)
         {
-            if (AudioManager.Instance != null)
-                musicToggle.isOn = AudioManager.Instance.MusicEnabled;
             musicToggle.onValueChanged.AddListener(OnMusicToggleChanged);
             RefreshToggleBgAlpha(musicToggle);
         }
         if (sfxToggle)
         {
-            if (AudioManager.Instance != null)
-                sfxToggle.isOn = AudioManager.Instance.SfxEnabled;
             sfxToggle.onValueChanged.AddListener(OnSfxToggleChanged);
             RefreshToggleBgAlpha(sfxToggle);
         }
@@ -301,7 +321,7 @@ public class UIManager : MonoBehaviour
     private void SetupGameRulesPanel()
     {
         if (gameRulesOpenButton) gameRulesOpenButton.onClick.AddListener(ShowGameRulesPanel);
-        if (gameRulesBackButton) gameRulesBackButton.onClick.AddListener(() => { AudioManager.Instance?.PlayPopupClose(); CloseGameRulesPanel(); });
+        if (gameRulesBackButton) gameRulesBackButton.onClick.AddListener(() => { CloseGameRulesPanel(); });
     }
 
     #endregion
@@ -363,12 +383,30 @@ public class UIManager : MonoBehaviour
                     }
                 }
             }
+            else
+            {
+                switch (symbolInfo.id)
+                {
+                    case 0: if (wildMultiplierText) wildMultiplierText.text = ""; break;
+                    case 1: if (gloveMultiplierText) gloveMultiplierText.text = ""; break;
+                    case 2: if (hatMultiplierText) hatMultiplierText.text = ""; break;
+                    case 3: if (sunglassesMultiplierText) sunglassesMultiplierText.text = ""; break;
+                    case 4: if (shoesMultiplierText) shoesMultiplierText.text = ""; break;
+                    case 5: if (aceMultiplierText) aceMultiplierText.text = ""; break;
+                    case 6: if (kingMultiplierText) kingMultiplierText.text = ""; break;
+                    case 7: if (queenMultiplierText) queenMultiplierText.text = ""; break;
+                    case 8: if (jackMultiplierText) jackMultiplierText.text = ""; break;
+                    case 9: if (tenMultiplierText) tenMultiplierText.text = ""; break;
+                    case 10: if (nineMultiplierText) nineMultiplierText.text = ""; break;
+                    case 11: if (jackpotMultiplierText) jackpotMultiplierText.text = ""; break;
+                    case 12: if (bonusMultiplierText) bonusMultiplierText.text = ""; break;
+                }
+            }
         }
     }
 
     internal void OnSpinStarted()
     {
-        AudioManager.Instance?.PlaySpinStart();
 
         if (spinButton) spinButton.gameObject.SetActive(false);
         if (stopButton) stopButton.gameObject.SetActive(true);
@@ -383,8 +421,6 @@ public class UIManager : MonoBehaviour
         }
 
         if (autoPlayButton) autoPlayButton.interactable = gameManager.isAutoPlaying;
-
-        AudioManager.Instance?.StopWinPopupBg();
 
         if (winDisplayCoroutine != null)
         {
@@ -621,6 +657,31 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// FIX: Waits for an ImageAnimation to reach FINISHED, but with a timeout safety net.
+    /// Previously we did `yield return new WaitUntil(() => anim.currentAnimationState == FINISHED)`
+    /// directly. If that ImageAnimation's state ever got stuck (see the StartAnimation()
+    /// fix in ImageAnimation.cs for why that could happen), this WaitUntil would block
+    /// forever — which in turn kept isSpecialWinActive stuck true and permanently
+    /// disabled the spin/bet/autoplay buttons. This wrapper guarantees we always move on
+    /// after maxWaitSeconds even if the animation misbehaves, so a bad animation state
+    /// can no longer soft-lock the whole game.
+    /// </summary>
+    private IEnumerator WaitForAnimationFinished(ImageAnimation anim, float maxWaitSeconds = 6f)
+    {
+        float elapsed = 0f;
+        while (anim.currentAnimationState != ImageAnimation.ImageState.FINISHED && elapsed < maxWaitSeconds)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (anim.currentAnimationState != ImageAnimation.ImageState.FINISHED)
+        {
+            Debug.LogWarning($"[UIManager] {anim.name} never reached FINISHED within {maxWaitSeconds}s — continuing anyway to avoid a stuck UI.");
+        }
+    }
+
+    /// <summary>
     /// Plays the big/colossal win popup visuals (title sprite, statue drop, coin/diamond
     /// animations, counting text) for winAmount, animating the counter from startVal.
     /// Does not touch control-enable state or isSpecialWinActive — callers own that.
@@ -634,8 +695,6 @@ public class UIManager : MonoBehaviour
         double endVal = winAmount;
         double popupWinAmount = winAmount;
 
-        AudioManager.Instance?.PlayWinOpeningJingle(multiplier);
-        AudioManager.Instance?.PlayWinPopupBg(multiplier);
         if (multiplier >= 50)
         {
             audioController.PlayCollosalWin();
@@ -646,7 +705,7 @@ public class UIManager : MonoBehaviour
         }
         FirstFireWorkImageAnimation.gameObject.SetActive(true);
         FirstFireWorkImageAnimation.StartAnimation();
-        yield return new WaitUntil(() => FirstFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        yield return StartCoroutine(WaitForAnimationFinished(FirstFireWorkImageAnimation));
         FirstFireWorkImageAnimation.gameObject.SetActive(false);
 
         // Colossal Win >= 50x, Big Win <= 50x
@@ -704,18 +763,16 @@ public class UIManager : MonoBehaviour
                 if (winAmountText) winAmountText.text = displayVal.ToString("F3");
 
                 currentWinDisplayValue = displayVal;
-            }, endVal, animDuration).SetEase(Ease.OutQuad);
+            }, endVal, 2f).SetEase(Ease.OutQuad);
         }
 
         yield return new WaitForSeconds(0.7f);
-
-        AudioManager.Instance?.StopWinPopupBg();
 
         if (winPopupPanel) winPopupPanel.SetActive(false);
         if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(false);
         if (winDiamondAnimation) winDiamondAnimation.gameObject.SetActive(false);
         if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(false);
-        yield return new WaitUntil(() => SecondFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        yield return StartCoroutine(WaitForAnimationFinished(SecondFireWorkImageAnimation));
         SecondFireWorkImageAnimation.gameObject.SetActive(false);
     }
 
@@ -861,15 +918,11 @@ public class UIManager : MonoBehaviour
 
     private void OnMusicToggleChanged(bool isOn)
     {
-        AudioManager.Instance?.PlayButton();
-        AudioManager.Instance?.SetMusicEnabled(isOn);
         RefreshToggleBgAlpha(musicToggle);
     }
 
     private void OnSfxToggleChanged(bool isOn)
     {
-        AudioManager.Instance?.PlayButton();
-        AudioManager.Instance?.SetSfxEnabled(isOn);
         RefreshToggleBgAlpha(sfxToggle);
     }
 
@@ -910,7 +963,7 @@ public class UIManager : MonoBehaviour
         if (Quit_Panel == null || !Quit_Panel.activeSelf) return;
 
         RectTransform temprect = quitRect;
-        
+
         if (temprect)
         {
             temprect.DOScale(Vector3.zero, 0.25f)
@@ -1003,7 +1056,6 @@ public class UIManager : MonoBehaviour
         RectTransform toPage = gameRulePages[toIndex];
         if (fromPage == null || toPage == null) return;
 
-        AudioManager.Instance?.PlayPageSwipe();
         isPageAnimating = true;
 
         float direction = slideLeft ? 1f : -1f;
@@ -1099,7 +1151,11 @@ public class UIManager : MonoBehaviour
     {
         audioController.PlayBackground();
         gameManager.freeSpinTrigger = false;
-        if (normalSpinBackground) normalSpinBackground.SetActive(true);
+        if (normalSpinBackground)
+        {
+            normalSpinBackground.SetActive(true);
+            normalSpinBackground.GetComponentInChildren<ImageAnimation>().StartAnimation();
+        }
         BlurrBg.sprite = NormalBG;
         if (freeSpinBackground) freeSpinBackground.SetActive(false);
         if (SlotBg) SlotBg.sprite = NormalSpinSlotBG;
@@ -1274,7 +1330,7 @@ public class UIManager : MonoBehaviour
         wheelBonusRect.gameObject.SetActive(true);
         wheelBonusRect.localScale = Vector3.one;
 
-        yield return new WaitUntil(() => animObj.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        yield return StartCoroutine(WaitForAnimationFinished(animObj));
         WheelStartAnimation.gameObject.SetActive(false);
         yield return new WaitForSeconds(0.5f);
         wheelBonusPanel.StartBonus();
