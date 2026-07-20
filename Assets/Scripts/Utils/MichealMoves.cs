@@ -30,6 +30,14 @@ partial class MichealMoves : MonoBehaviour
     [SerializeField] private List<Sprite> MichealLeftFingerMove;  // 4
     [SerializeField] private List<Sprite> MichealRightFingerMove; // 5
 
+    [Header("Second Part Beat It animation")]
+    [SerializeField] private List<Sprite> MichealSecondLeftLegMove;     // 0
+    [SerializeField] private List<Sprite> MichealSecondRightLegMove;    // 1
+    [SerializeField] private List<Sprite> MichealSecondLeftArmMove;     // 2
+    [SerializeField] private List<Sprite> MichealSecondRightArmMove;    // 3
+    [SerializeField] private List<Sprite> MichealSecondLeftFingerMove;  // 4
+    [SerializeField] private List<Sprite> MichealSecondRightFingerMove; // 5
+
     [Header("Moves Animation Smooth Criminal")]
     [SerializeField] private List<Sprite> FirstSmoothCriminalMove; // 0
     [SerializeField] private List<Sprite> SecondSmoothCriminalMove; // 1
@@ -166,14 +174,20 @@ partial class MichealMoves : MonoBehaviour
         AnimationObj.SetActive(true);
         animationObjAnim.StartAnimation();
 
-        yield return new WaitUntil(() =>
-            animationObjAnim.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        yield return new WaitUntil(() => animationObjAnim.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+        
+        // 3. Micheal's move finished — reveal the slot's own sticky wild animation
+        StartCoroutine(StartSlotReveal(col, row));
+
+        animationObjAnim.textureArray = GetSecondMoveSprites(moveData.animationType);
+        animationObjAnim.AnimationSpeed = GetSecondAnimationSpeed(moveData.animationType);
+        animationObjAnim.StartAnimation();
+
+        yield return new WaitUntil(()=> animationObjAnim.currentAnimationState == ImageAnimation.ImageState.FINISHED);
 
         AnimationObj.SetActive(false);
         MainAnimationObj.SetActive(false);
 
-        // 3. Micheal's move finished — reveal the slot's own sticky wild animation
-        StartCoroutine(StartSlotReveal(col, row));
     }
 
     /// <summary>
@@ -384,17 +398,45 @@ partial class MichealMoves : MonoBehaviour
         }
     }
 
+    private List<Sprite> GetSecondMoveSprites(int animationType)
+    {
+        switch (animationType)
+        {
+            case 0: return MichealSecondLeftLegMove;
+            case 1: return MichealSecondRightLegMove;
+            case 2: return MichealSecondLeftArmMove;
+            case 3: return MichealSecondRightArmMove;
+            case 4: return MichealSecondLeftFingerMove;
+            case 5: return MichealSecondRightFingerMove;
+            default: return null;
+        }
+    }
+
     private float GetAnimationSpeed(int animationType)
     {
         switch (animationType)
         {
-            case 0: return 50;
-            case 1: return 50;
-            case 2: return 25;
-            case 3: return 25;
-            case 4: return 20;
-            case 5: return 20;
+            case 0: return 36;
+            case 1: return 36;
+            case 2: return 19;
+            case 3: return 19;
+            case 4: return 12;
+            case 5: return 12;
             default: return 45;
+        }
+    }
+
+    private float GetSecondAnimationSpeed(int animationType)
+    {
+        switch (animationType)
+        {
+            case 0: return 15;
+            case 1: return 15;
+            case 2: return 10;
+            case 3: return 10;
+            case 4: return 10;
+            case 5: return 10;
+            default: return 4;
         }
     }
 
@@ -402,11 +444,11 @@ partial class MichealMoves : MonoBehaviour
     {
         switch (spinNumber)
         {
-            case 0: return 60;
-            case 1: return 80;
-            case 2: return 50;
-            case 3: return 50;
-            case 4: return 80;
+            case 0: return 50;
+            case 1: return 70;
+            case 2: return 40;
+            case 3: return 40;
+            case 4: return 70;
             default: return 60;
         }
     }

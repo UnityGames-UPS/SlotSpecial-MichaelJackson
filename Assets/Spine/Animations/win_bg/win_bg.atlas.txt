@@ -1,0 +1,118 @@
+win_bg.png
+size:3860,3861
+filter:Linear,Linear
+pma:true
+spotlight
+bounds:486,2410,326,1047
+offsets:6,2,339,1080
+star
+bounds:1776,3359,98,98
+offsets:1,1,100,100
+star rain/star rain_00000
+bounds:970,1046,960,481
+offsets:0,59,960,540
+star rain/star rain_00001
+bounds:1924,2899,960,482
+offsets:0,58,960,540
+rotate:90
+star rain/star rain_00002
+bounds:970,563,960,481
+offsets:0,59,960,540
+star rain/star rain_00003
+bounds:486,2,960,481
+offsets:0,59,960,540
+rotate:90
+star rain/star rain_00004
+bounds:969,80,960,481
+offsets:0,59,960,540
+star rain/star rain_00005
+bounds:1931,80,960,481
+offsets:0,59,960,540
+star rain/star rain_00006
+bounds:1932,1937,960,481
+offsets:0,59,960,540
+rotate:90
+star rain/star rain_00007
+bounds:2408,3378,960,481
+offsets:0,59,960,540
+star rain/star rain_00008
+bounds:2,2497,960,482
+offsets:0,58,960,540
+rotate:90
+star rain/star rain_00009
+bounds:1932,1454,960,481
+offsets:0,59,960,540
+star rain/star rain_00010
+bounds:2893,492,960,481
+offsets:0,59,960,540
+rotate:90
+star rain/star rain_00011
+bounds:2,1535,960,482
+offsets:0,58,960,540
+rotate:90
+star rain/star rain_00012
+bounds:2893,9,960,481
+offsets:0,59,960,540
+star rain/star rain_00013
+bounds:2415,2895,960,481
+offsets:0,59,960,540
+star rain/star rain_00014
+bounds:2415,2412,960,481
+offsets:0,59,960,540
+star rain/star rain_00015
+bounds:2894,1929,960,481
+offsets:0,59,960,540
+star rain/star rain_00016
+bounds:486,1926,960,482
+offsets:0,58,960,540
+star rain/star rain_00017
+bounds:3376,967,960,481
+offsets:0,59,960,540
+rotate:90
+star rain/star rain_00018
+bounds:814,2975,960,482
+offsets:0,58,960,540
+star rain/star rain_00019
+bounds:814,2491,960,482
+offsets:0,58,960,540
+star rain/star rain_00020
+bounds:1448,1529,960,482
+offsets:0,58,960,540
+rotate:90
+star rain/star rain_00021
+bounds:3377,2899,960,481
+offsets:0,59,960,540
+rotate:90
+star rain/star rain_00023
+bounds:2,573,960,482
+offsets:0,58,960,540
+rotate:90
+star rain/star rain_00029
+bounds:486,964,960,482
+offsets:0,58,960,540
+rotate:90
+text_bg
+bounds:2,3459,1920,400
+
+win_bg_2.png
+size:2888,967
+filter:Linear,Linear
+pma:true
+star rain/star rain_00022
+bounds:2,2,960,481
+offsets:0,59,960,540
+star rain/star rain_00024
+bounds:964,2,960,481
+offsets:0,59,960,540
+star rain/star rain_00025
+bounds:2,485,960,480
+offsets:0,60,960,540
+star rain/star rain_00026
+bounds:964,485,960,480
+offsets:0,60,960,540
+star rain/star rain_00027
+bounds:1926,2,960,481
+offsets:0,59,960,540
+star rain/star rain_00028
+bounds:1926,485,960,480
+offsets:0,60,960,540

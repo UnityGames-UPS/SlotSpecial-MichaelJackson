@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using TMPro;
 
 public class SlotView : MonoBehaviour
 {
@@ -109,6 +110,9 @@ public class SlotView : MonoBehaviour
 
     [Header("Sticky Wild Overlays — Col 0..4  (each has 3 rows)")]
     [SerializeField] private ColumnOverlays[] stickyWildColumns = new ColumnOverlays[5];
+
+    [Header("Line PaysObjects")]
+    [SerializeField] private List<GameObject> linePaysObject;
 
     [Header("Bonus Slot BG")]
     [SerializeField] private GameObject[] SlotBg;
@@ -436,6 +440,7 @@ public class SlotView : MonoBehaviour
         isSpinning = true;
         scatterAnticipationActive = false;
         KillAllTweens();
+        ClearPayLineObjects();
 
         // Bonus icons that got pushed to the front layer last round go back to their
         // original position before this new spin begins.
@@ -1140,6 +1145,7 @@ public class SlotView : MonoBehaviour
         imageAnim.textureArray = animSprites;
         imageAnim.useDynamicFramerate = true;
         imageAnim.dynamicLoopDuration = winSymbolLoopDuration;
+        imageAnim.doLoopAnimation = false;
 
         Color originalColor = new Color(symbolImage.color.r, symbolImage.color.g, symbolImage.color.b, 1f);
 
@@ -1155,10 +1161,10 @@ public class SlotView : MonoBehaviour
                 Color c = animRenderer.color;
                 animRenderer.color = new Color(c.r, c.g, c.b, 0f);
                 animRenderer.preserveAspect = true;
-                animRenderer.DOFade(1f, 0.2f);
+                animRenderer.DOFade(1f, 0f);
             }
             symbolImage.DOKill();
-            symbolImage.DOFade(0f, 0.2f);
+            symbolImage.DOFade(0f, 0.1f);
         });
 
         if (preDelay > 0)
@@ -1176,6 +1182,11 @@ public class SlotView : MonoBehaviour
         seq.AppendCallback(() =>
         {
             Image animRenderer = imageAnim != null ? imageAnim.rendererDelegate : null;
+            if (symbolImage != null)
+            {
+                symbolImage.DOKill();
+                symbolImage.DOFade(originalColor.a, 0f);
+            }
             if (animRenderer != null)
             {
                 animRenderer.DOKill();
@@ -1186,6 +1197,9 @@ public class SlotView : MonoBehaviour
                     if (animGO != null) animGO.transform.localScale = Vector3.one;
 
                 });
+                // if (imageAnim != null) imageAnim.StopAnimation();
+                // if (animGO != null) animGO.SetActive(false);
+                // if (animGO != null) animGO.transform.localScale = Vector3.one;
             }
             else
             {
@@ -1194,11 +1208,6 @@ public class SlotView : MonoBehaviour
                 if (animGO != null) animGO.transform.localScale = Vector3.one;
             }
 
-            if (symbolImage != null)
-            {
-                symbolImage.DOKill();
-                symbolImage.DOFade(originalColor.a, 0.2f);
-            }
         });
 
         winTweens.Add(seq);
@@ -1216,17 +1225,18 @@ public class SlotView : MonoBehaviour
             return;
         }
 
-        winAnimationCoroutine = StartCoroutine(PlayAllWinLinesAtOnce(winLines, onComplete));
+        bool isAutoSpin = gameManager != null && gameManager.isAutoPlaying;
+
+        winAnimationCoroutine = StartCoroutine(isAutoSpin || gameManager.isInFreeSpins
+            ? PlayAllWinLinesAtOnce(winLines, onComplete)
+            : PlayAllOnceThenLoopOneByOne(winLines, onComplete));
     }
 
     private IEnumerator PlayAllWinLinesAtOnce(List<WinLine> winLines, System.Action onComplete)
     {
-        yield return new WaitForSeconds(2f); // Small delay to ensure any last-frame animations finish before we kill them
+        yield return new WaitForSeconds(0.5f); // Small delay to ensure any last-frame animations finish before we kill them
         KillWinTweens(false, true); // false: don't stop this coroutine (self); true: keep bonus icon at its enlarged scale
-        int loopCount = winPopRepeat; // Use inspector field
-        float lineDuration = useFallbackPopAnimation ? (winPopDuration * loopCount) : (winSymbolLoopDuration * loopCount);
-
-        Debug.Log($"[PlayAllWinLinesAtOnce] Starting win animation for {winLines.Count} lines all at once. duration: {lineDuration}s ({loopCount} loops x {(useFallbackPopAnimation ? winPopDuration : winSymbolLoopDuration)}s), fallback: {useFallbackPopAnimation}");
+        int loopCount = 1;
 
         HashSet<int> uniquePositions = new HashSet<int>();
         foreach (var winLine in winLines)
@@ -1256,19 +1266,125 @@ public class SlotView : MonoBehaviour
             }
             else
             {
-                EnableWinBox(col, row);
+                StartCoroutine(EnableWinBox(col, row));
                 AnimateWinSymbol(col, row, loopCount);
             }
         }
 
-        yield return new WaitForSeconds(lineDuration);
+        yield return new WaitForSeconds(1f);
 
-        KillWinTweens(false, true);
+        //KillWinTweens(false, true);
 
         onComplete?.Invoke();
     }
 
-    private void EnableWinBox(int col, int row)
+    // Manual play: show all winning lines at once for one pass, then loop through the lines
+    // one at a time forever. The loop only stops when the next spin starts — SlotView.StartSpin()
+    // -> KillAllTweens() -> KillWinTweens(stopCoroutine: true) stops this coroutine and clears
+    // the visuals. onComplete fires once, right after the initial all-at-once pass, so downstream
+    // game-flow logic (re-enabling controls, finalizing the spin result) isn't held up by the
+    // looping visuals that follow.
+    private IEnumerator PlayAllOnceThenLoopOneByOne(List<WinLine> winLines, System.Action onComplete)
+    {
+        yield return new WaitForSeconds(0.5f); // Small delay to ensure any last-frame animations finish before we kill them
+        KillWinTweens(false, true); // false: don't stop this coroutine (self); true: keep bonus icon at its enlarged scale
+
+        int loopCount = 1; // Use inspector field
+
+        // --- Pass 1: show every winning line at once ---
+        HashSet<int> uniquePositions = new HashSet<int>();
+        foreach (var winLine in winLines)
+        {
+            if (winLine.positions == null) continue;
+            foreach (int pos in winLine.positions)
+            {
+                uniquePositions.Add(pos);
+            }
+        }
+
+        audioController.PlayWinLine();
+        if (winLines.Count > 1)
+        {
+
+            foreach (int flatIndex in uniquePositions)
+            {
+                int row = flatIndex / 5;
+                int col = flatIndex % 5;
+
+                if (col < 0 || col >= 5 || row < 0 || row >= 4)
+                {
+                    Debug.LogWarning($"[PlayAllOnceThenLoopOneByOne] Invalid position! col: {col}, row: {row}");
+                    continue;
+                }
+
+                if (useFallbackPopAnimation)
+                {
+                    PopSlotIcon(col, row, loopCount);
+                }
+                else
+                {
+                    StartCoroutine(EnableWinBox(col, row));
+                    AnimateWinSymbol(col, row, loopCount);
+                }
+            }
+
+            yield return new WaitForSeconds(1f);
+        }
+
+        onComplete?.Invoke();
+
+        // --- Pass 2+: loop through the lines one at a time, forever, until the next spin kills this coroutine ---
+        while (true)
+        {
+            foreach (var winLine in winLines)
+            {
+                if (winLine.positions == null) continue;
+
+                // Clear the previous line's visuals before showing the next one.
+                KillWinTweens(false, true);
+
+                audioController.PlayWinLine();
+
+                int tempPosi = winLine.positions[0] / 5;
+
+                foreach (int flatIndex in winLine.positions)
+                {
+                    CanvasGroup cg = linePaysObject[tempPosi].GetComponent<CanvasGroup>();
+
+                    linePaysObject[tempPosi].SetActive(true);
+                    linePaysObject[tempPosi].transform.GetChild(0).GetComponent<TMP_Text>().text = winLine.winAmount.ToString("F3");
+                    int row = flatIndex / 5;
+                    int col = flatIndex % 5;
+
+
+                    if (col < 0 || col >= 5 || row < 0 || row >= 4)
+                    {
+                        Debug.LogWarning($"[PlayAllOnceThenLoopOneByOne] Invalid position! col: {col}, row: {row}");
+                        continue;
+                    }
+
+                    if (useFallbackPopAnimation)
+                    {
+                        PopSlotIcon(col, row, loopCount);
+                    }
+                    else
+                    {
+                        StartCoroutine(EnableWinBox(col, row));
+                        AnimateWinSymbol(col, row, loopCount);
+                    }
+                }
+                yield return new WaitForSeconds(1.2f);
+                //linePaysObject[tempPosi].GetComponent<CanvasGroup>().DOFade(0f, 0.2f).SetEase(Ease.Linear).OnComplete(() =>
+                {
+                    linePaysObject[tempPosi].SetActive(false);
+                }//);
+                //yield return new WaitForSeconds(0.5f);
+                //linePaysObject[tempPosi].SetActive(false);
+            }
+        }
+    }
+
+    private IEnumerator EnableWinBox(int col, int row)
     {
         var go = WinBox(winBoxColumns, col, row);
         if (go != null)
@@ -1277,8 +1393,11 @@ public class SlotView : MonoBehaviour
             Image img = go.GetComponent<Image>();
             ImageAnimation anim = go.GetComponent<ImageAnimation>();
             anim.rendererDelegate = img;
-            anim.AnimationSpeed = 13f;
+            anim.AnimationSpeed = 25f;
+            anim.doLoopAnimation = false;
             anim.StartAnimation();
+            yield return new WaitUntil(() => anim.currentAnimationState == ImageAnimation.ImageState.FINISHED);
+            go.SetActive(false);
         }
     }
 
@@ -1352,6 +1471,10 @@ public class SlotView : MonoBehaviour
         if (symbolId == 12)
         {
             animGO.transform.localScale = new Vector3(1.09f, 1.09f, 1.09f);
+        }
+        if (symbolId == 0)
+        {
+            imageAnim.AnimationSpeed = 10f;
         }
 
         if (hasAnimation && IsSpecialSymbol(symbolId))
@@ -1492,6 +1615,13 @@ public class SlotView : MonoBehaviour
         DisableColumns(stickyWildColumns);
     }
 
+    private void ClearPayLineObjects()
+    {
+        foreach (var payLine in linePaysObject)
+        {
+            payLine.SetActive(false);
+        }
+    }
 
 
     #region Cleanup

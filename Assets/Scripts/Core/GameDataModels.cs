@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 #region Server Communication Models
-    
+
 
 [Serializable]
 public class InitData
@@ -158,6 +158,7 @@ public class ServerLineWin
 {
     public int lineIndex;
     public List<int> positions;  // Flat list of column indices [0,1,2,3]
+    public double win;
 }
 
 [Serializable]
@@ -592,7 +593,7 @@ public static class InitDataConverter
 
                 string symbolStr = serverMatrix[row][col];
                 string metadataKey = $"{row}:{col}";
-                
+
                 if (cellMetadata != null && cellMetadata.TryGetValue(metadataKey, out string variantType))
                 {
                     symbolStr = variantType;
@@ -679,7 +680,7 @@ public static class InitDataConverter
                 lineId = serverLine.lineIndex,
                 symbolId = -1,  // Server doesn't send symbolId in lineWins
                 positions = flatPositions,
-                winAmount = 0   // Individual line win not sent, total is in currentWinning
+                winAmount = serverLine.win   // Individual line win not sent, total is in currentWinning
             });
         }
 

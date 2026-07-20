@@ -72,6 +72,13 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Idle;
 
         uiManager.OnGameInitialized();
+
+        // Kick off video buffering now so PlayVideo() can start instantly later
+        // instead of waiting on network/prepare time when it's actually triggered.
+        if (videoManager != null)
+        {
+            videoManager.PreloadVideos();
+        }
     }
 
     #endregion
@@ -229,7 +236,7 @@ public class GameManager : MonoBehaviour
             // Big/Colossal win popups only apply to a single normal spin outside free spins.
             // During free spins, any per-spin win just updates the cumulative round total —
             // the big/colossal win check happens once, after the round ends (see EndFreeSpins).
-            bool isBigWinCandidate = multiplier >= 50 && !isInFreeSpins;
+            bool isBigWinCandidate = multiplier >= 30 && !isInFreeSpins;
 
             currentState = GameState.Idle;
 

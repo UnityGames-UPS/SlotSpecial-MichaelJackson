@@ -55,12 +55,12 @@ public class UIManager : MonoBehaviour
 
     [Header("Win Popup Panel")]
     [SerializeField] private GameObject winPopupPanel;
-    [SerializeField] private ImageAnimation winPopupBGAnimation;
+    [SerializeField] private SpineAnimController BGAnimation;
     [SerializeField] private Image winPopupTitleImage;
+    [SerializeField] private GameObject winTitleBG;
     [SerializeField] private ImageAnimation FirstFireWorkImageAnimation;
     [SerializeField] private ImageAnimation SecondFireWorkImageAnimation;
-    [SerializeField] private ImageAnimation winCoinAnimation;
-    [SerializeField] private ImageAnimation winDiamondAnimation;
+    [SerializeField] private SpineAnimController CoinDiamondAnimation;
     //[SerializeField] private GameObject winRingObject;
     [SerializeField] private RectTransform winStatueImageRect;
     [SerializeField] private TMP_Text winPopupText;
@@ -214,7 +214,7 @@ public class UIManager : MonoBehaviour
         SetupGameRulesPanel();
         InitializeBackgrounds();
         StartCoroutine(LoadingSequence());
-        //StartCoroutine(PlayBigWinVisuals(35.50f, 0f)); // Preload the big win visuals to avoid first-time lag
+        //StartCoroutine(PlayBigWinVisuals(35.50f, 0f, true)); // Preload the big win visuals to avoid first-time lag
     }
 
     private void InitializeBackgrounds()
@@ -527,7 +527,8 @@ public class UIManager : MonoBehaviour
         else if (gameManager.isInFreeSpins)
         {
             if (spinButton) spinButton.gameObject.SetActive(false);
-            if (stopButton) stopButton.gameObject.SetActive(false);
+            if (stopButton) stopButton.gameObject.SetActive(true);
+            if (stopButton) stopButton.interactable = false;
         }
         else
         {
@@ -607,17 +608,17 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator WinPanelRoutine(double winAmount, System.Action onBackgroundOpaque = null)
     {
-        if (winPanel == null || winPanelBG == null || winText == null)
-        {
-            onBackgroundOpaque?.Invoke();
-            yield break;
-        }
-        audioController.PlayNormalWin();
-        winText.text = System.Math.Round(winAmount, 3).ToString("0.###");
+        // if (winPanel == null || winPanelBG == null || winText == null)
+        // {
+        //     onBackgroundOpaque?.Invoke();
+        //     yield break;
+        // }
+        // audioController.PlayNormalWin();
+        // winText.text = System.Math.Round(winAmount, 3).ToString("0.###");
         winPanelBG.alpha = 0f;
         winPanel.SetActive(true);
 
-        yield return new WaitForSeconds(1.5f);
+        // yield return new WaitForSeconds(1.5f);
 
         winPanelBG.DOFade(1f, 0.5f);
         yield return new WaitForSeconds(0.5f);
@@ -626,7 +627,7 @@ public class UIManager : MonoBehaviour
         // caller to swap out whatever's behind it without the change being visible.
         onBackgroundOpaque?.Invoke();
 
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(0.5f);
         winPanel.SetActive(false);
     }
 
@@ -686,7 +687,7 @@ public class UIManager : MonoBehaviour
     /// animations, counting text) for winAmount, animating the counter from startVal.
     /// Does not touch control-enable state or isSpecialWinActive — callers own that.
     /// </summary>
-    private IEnumerator PlayBigWinVisuals(double winAmount, double startVal)
+    private IEnumerator PlayBigWinVisuals(double winAmount, double startVal, bool isWheelspin = false)
     {
 
         double totalBetAmount = gameManager.TotalBetAmount;
@@ -695,55 +696,33 @@ public class UIManager : MonoBehaviour
         double endVal = winAmount;
         double popupWinAmount = winAmount;
 
-        if (multiplier >= 50)
-        {
-            audioController.PlayCollosalWin();
-        }
-        else
-        {
-            audioController.PlayBigWin();
-        }
+        audioController.PlayCollosalWin();
+
         FirstFireWorkImageAnimation.gameObject.SetActive(true);
         FirstFireWorkImageAnimation.StartAnimation();
+
+        yield return new WaitForSeconds(0.2f);
+        if (winPopupPanel) winPopupPanel.SetActive(true);
+        BGAnimation.gameObject.SetActive(true);
+        BGAnimation.Play(false);
+
         yield return StartCoroutine(WaitForAnimationFinished(FirstFireWorkImageAnimation));
         FirstFireWorkImageAnimation.gameObject.SetActive(false);
 
         // Colossal Win >= 50x, Big Win <= 50x
-        Sprite selectedSprite = multiplier >= 50 ? colossalWinSprite : bigWinSprite;
-        if (winPopupTitleImage) winPopupTitleImage.sprite = selectedSprite;
-        if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(true);
-
-        if (winPopupPanel) winPopupPanel.SetActive(true);
-        if (winPopupBGAnimation) winPopupBGAnimation.StartAnimation();
-
-        float popupTime = 8f;
-        float animDuration = popupTime - 1f;
-
-        if (winStatueImageRect)
+        //Sprite selectedSprite = multiplier >= 50 ? colossalWinSprite : bigWinSprite;
+        Sprite selectedSprite;
+        if (multiplier <= 50 && !gameManager.isInFreeSpins && !isWheelspin)
         {
-            winStatueImageRect.localPosition = new Vector3(0f, -2500f);
-            winStatueImageRect.DOLocalMoveY(2500, 6f).SetEase(Ease.Linear);
-            yield return new WaitForSeconds(4f);
-            if (multiplier >= 50)
-            {
-                if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(true);
-                if (winDiamondAnimation) winDiamondAnimation.gameObject.SetActive(true);
-                if (winDiamondAnimation) winDiamondAnimation.StartAnimation();
-                if (winCoinAnimation) winCoinAnimation.StartAnimation();
-            }
-            else
-            {
-                if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(true);
-                if (winCoinAnimation) winCoinAnimation.StartAnimation();
-            }
-            yield return new WaitForSeconds(2f);
-            // FirstFireWorkImageAnimation.gameObject.SetActive(true);
-            // FirstFireWorkImageAnimation.StartAnimation();
-            // yield return new WaitUntil(() => FirstFireWorkImageAnimation.currentAnimationState == ImageAnimation.ImageState.FINISHED);
-            // FirstFireWorkImageAnimation.gameObject.SetActive(false);
-            SecondFireWorkImageAnimation.gameObject.SetActive(true);
-            SecondFireWorkImageAnimation.StartAnimation();
+            selectedSprite = bigWinSprite;
         }
+        else
+        {
+            selectedSprite = colossalWinSprite;
+        }
+        if (winPopupTitleImage) winPopupTitleImage.sprite = selectedSprite;
+        if (winTitleBG) winTitleBG.SetActive(true);
+        if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(true);
 
         if (winPopupText)
         {
@@ -766,12 +745,33 @@ public class UIManager : MonoBehaviour
             }, endVal, 2f).SetEase(Ease.OutQuad);
         }
 
+        float popupTime = 8f;
+        float animDuration = popupTime - 1f;
+
+        if (winStatueImageRect)
+        {
+            winStatueImageRect.localPosition = new Vector3(0f, -3000f);
+            winStatueImageRect.DOLocalMoveY(3000, 8f).SetEase(Ease.Linear);
+            yield return new WaitForSeconds(2f);
+
+            CoinDiamondAnimation.gameObject.SetActive(true);
+            CoinDiamondAnimation.Play(true);
+
+            yield return new WaitForSeconds(6f);
+            SecondFireWorkImageAnimation.gameObject.SetActive(true);
+            SecondFireWorkImageAnimation.StartAnimation();
+        }
+
+
         yield return new WaitForSeconds(0.7f);
 
         if (winPopupPanel) winPopupPanel.SetActive(false);
-        if (winCoinAnimation) winCoinAnimation.gameObject.SetActive(false);
-        if (winDiamondAnimation) winDiamondAnimation.gameObject.SetActive(false);
+        if (CoinDiamondAnimation) CoinDiamondAnimation.gameObject.SetActive(false);
+        if (CoinDiamondAnimation) CoinDiamondAnimation.Stop();
+        if (winTitleBG) winTitleBG.SetActive(false);
         if (winPopupTitleImage) winPopupTitleImage.gameObject.SetActive(false);
+        if (BGAnimation) BGAnimation.gameObject.SetActive(false);
+        if (BGAnimation) BGAnimation.Stop();
         yield return StartCoroutine(WaitForAnimationFinished(SecondFireWorkImageAnimation));
         SecondFireWorkImageAnimation.gameObject.SetActive(false);
     }
@@ -803,10 +803,10 @@ public class UIManager : MonoBehaviour
             double totalBetAmount = gameManager.TotalBetAmount;
             double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
-            // Only Big Win (>= 50x) or Colossal Win (>= 100x) get the extra popup
-            if (multiplier >= 50)
+            // Only Big Win (>= 25x) or Colossal Win (>= 50x) get the extra popup
+            //if (multiplier >= 25)
             {
-                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0));
+                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0, true));
             }
         }
         else
@@ -827,6 +827,7 @@ public class UIManager : MonoBehaviour
     private void OnSpinButtonPressed()
     {
         if (gameManager.isAutoPlaying) return;
+        spinButton.interactable = false;
         audioController.PlaySpinButton();
         gameManager.RequestSpin();
     }
@@ -834,6 +835,7 @@ public class UIManager : MonoBehaviour
     private void OnStopButtonPressed()
     {
         audioController.PlaySpinButton();
+        stopButton.interactable = false;
         gameManager.RequestStopSpin();
     }
 
@@ -1302,9 +1304,10 @@ public class UIManager : MonoBehaviour
             double totalBetAmount = gameManager.TotalBetAmount;
             double multiplier = totalBetAmount > 0 ? (winAmount / totalBetAmount) : 0;
 
-            if (multiplier >= 50)
+            //  25x - big win , 50x - collosal win
+            //if (multiplier >= 25)
             {
-                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0));
+                yield return StartCoroutine(PlayBigWinVisuals(winAmount, 0, true));
             }
         }
         else
