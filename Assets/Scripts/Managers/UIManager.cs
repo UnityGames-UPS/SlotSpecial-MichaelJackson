@@ -214,7 +214,7 @@ public class UIManager : MonoBehaviour
         SetupGameRulesPanel();
         InitializeBackgrounds();
         StartCoroutine(LoadingSequence());
-        StartCoroutine(PlayBigWinVisuals(35.50f, 0f, true)); // Preload the big win visuals to avoid first-time lag
+        //StartCoroutine(PlayBigWinVisuals(35.50f, 0f, true)); // Preload the big win visuals to avoid first-time lag
     }
 
     private void InitializeBackgrounds()
