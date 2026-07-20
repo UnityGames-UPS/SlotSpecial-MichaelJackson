@@ -24,7 +24,7 @@ public class UIManager : MonoBehaviour
     [Header("Backgrounds")]
     [SerializeField] private GameObject normalSpinBackground;
     [SerializeField] private GameObject freeSpinBackground;
-    [SerializeField] private Image BlurrBg;
+    //[SerializeField] private Image BlurrBg;
     [SerializeField] private Sprite NormalBG;
     [SerializeField] private Image SlotBg;
     [SerializeField] private Sprite NormalSpinSlotBG;
@@ -214,7 +214,7 @@ public class UIManager : MonoBehaviour
         SetupGameRulesPanel();
         InitializeBackgrounds();
         StartCoroutine(LoadingSequence());
-        //StartCoroutine(PlayBigWinVisuals(35.50f, 0f, true)); // Preload the big win visuals to avoid first-time lag
+        StartCoroutine(PlayBigWinVisuals(35.50f, 0f, true)); // Preload the big win visuals to avoid first-time lag
     }
 
     private void InitializeBackgrounds()
@@ -751,13 +751,13 @@ public class UIManager : MonoBehaviour
         if (winStatueImageRect)
         {
             winStatueImageRect.localPosition = new Vector3(0f, -3000f);
-            winStatueImageRect.DOLocalMoveY(3000, 8f).SetEase(Ease.Linear);
-            yield return new WaitForSeconds(2f);
+            winStatueImageRect.DOLocalMoveY(3000, 10f).SetEase(Ease.Linear);
+            yield return new WaitForSeconds(5f);
 
             CoinDiamondAnimation.gameObject.SetActive(true);
-            CoinDiamondAnimation.Play(true);
+            CoinDiamondAnimation.Play(false);
 
-            yield return new WaitForSeconds(6f);
+            yield return new WaitForSeconds(4f);
             SecondFireWorkImageAnimation.gameObject.SetActive(true);
             SecondFireWorkImageAnimation.StartAnimation();
         }
@@ -1124,7 +1124,7 @@ public class UIManager : MonoBehaviour
         {
             audioController.PlayBeatItStart();
             freeSpinBackground.GetComponent<Image>().sprite = beatItBG;
-            BlurrBg.sprite = beatItBG;
+            //BlurrBg.sprite = beatItBG;
             TitleImage.sprite = beatItTitle;
             IntroTitleImage.sprite = beatItIntroTitle;
         }
@@ -1132,7 +1132,7 @@ public class UIManager : MonoBehaviour
         {
             audioController.PlayBeatItStart();
             freeSpinBackground.GetComponent<Image>().sprite = smoothCriminalBG;
-            BlurrBg.sprite = smoothCriminalBG;
+            //BlurrBg.sprite = smoothCriminalBG;
             TitleImage.sprite = smoothCriminalTitle;
             IntroTitleImage.sprite = smoothCriminalIntroTitle;
         }
@@ -1158,7 +1158,7 @@ public class UIManager : MonoBehaviour
             normalSpinBackground.SetActive(true);
             normalSpinBackground.GetComponentInChildren<ImageAnimation>().StartAnimation();
         }
-        BlurrBg.sprite = NormalBG;
+        //BlurrBg.sprite = NormalBG;
         if (freeSpinBackground) freeSpinBackground.SetActive(false);
         if (SlotBg) SlotBg.sprite = NormalSpinSlotBG;
 

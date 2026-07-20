@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c40e458aa92a745b793fcf4a7041e65f
+guid: 12c2df0c396124b94ae1c28deb1e9b29
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2213334806298997565
-    second: Micheal_Jackson_golden_statue_with_glow_0
+      213: -584267001805116119
+    second: Micheal_Jackson_golden_statue_2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,7 +126,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Micheal_Jackson_golden_statue_with_glow_0
+      name: Micheal_Jackson_golden_statue_2_0
       rect:
         serializedVersion: 2
         x: 61
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d33b572974857be10800000000000000
-      internalID: 2213334806298997565
+      spriteID: 92d6c67e14444e7f0800000000000000
+      internalID: -584267001805116119
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Micheal_Jackson_golden_statue_with_glow_0: 2213334806298997565
+      Micheal_Jackson_golden_statue_2_0: -584267001805116119
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

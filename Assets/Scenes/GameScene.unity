@@ -3229,7 +3229,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000061035, y: -62.02}
+  m_AnchoredPosition: {x: 0.000061035, y: 29}
   m_SizeDelta: {x: 1919.9999, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &111869492
@@ -19069,7 +19069,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2213334806298997565, guid: c40e458aa92a745b793fcf4a7041e65f, type: 3}
+  m_Sprite: {fileID: -584267001805116119, guid: 12c2df0c396124b94ae1c28deb1e9b29, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -28278,7 +28278,6 @@ MonoBehaviour:
   initializationTimeout: 20
   normalSpinBackground: {fileID: 1507611830}
   freeSpinBackground: {fileID: 344848932}
-  BlurrBg: {fileID: 2017230642}
   NormalBG: {fileID: -6695950386315148514, guid: 095ae91df0df84bb1800672449ee0fa9, type: 3}
   SlotBg: {fileID: 2073088010}
   NormalSpinSlotBG: {fileID: 5810557578812205229, guid: a86401bf170954fe496b64666d436ecd, type: 3}
@@ -31363,11 +31362,11 @@ MonoBehaviour:
   timeScale: 1
   freeze: 0
   layoutScaleMode: 0
-  referenceSize: {x: 1, y: 1}
+  referenceSize: {x: 1920, y: 957.8}
   pivotOffset: {x: 0, y: 0}
   referenceScale: 1
   layoutScale: 1
-  rectTransformSize: {x: 0, y: 0}
+  rectTransformSize: {x: 1920, y: 957.8}
   editReferenceRect: 0
   updateWhenInvisible: 3
   allowMultipleCanvasRenderers: 1
@@ -50263,7 +50262,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2017230641
 RectTransform:
   m_ObjectHideFlags: 0
