@@ -440,10 +440,10 @@ public class SocketIOManager : MonoBehaviour
 
         isConnected = false;
 
-        if (popupManager != null && !popupManager.IsLoadingPopupActive())
-        {
-            popupManager.ShowLoadingPopup(0f);
-        }
+        // if (popupManager != null && !popupManager.IsLoadingPopupActive())
+        // {
+        //     popupManager.ShowLoadingPopup(0f);
+        // }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         if (JSManager != null)
