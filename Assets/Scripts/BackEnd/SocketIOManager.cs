@@ -78,6 +78,7 @@ public class SocketIOManager : MonoBehaviour
             else
             {
                 // Normal path: ask platform for token, it will call ReceiveAuthToken
+                JSManager.RegisterAuthTokenListener(gameObject.name); // listen for host's TokenReceived before asking
                 JSManager.SendCustomMessage("authToken");
             }
         }
