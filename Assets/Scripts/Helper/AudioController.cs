@@ -271,13 +271,37 @@ internal class AudioController : MonoBehaviour
     internal void MuteGame(bool mute) => gameSoundSource.mute = mute;
     // internal void MuteUI(bool mute) => uiSource.mute = mute;
 
+    private bool isForceMuted = false;
+    private bool preFocusGameMuted;
+    private bool preFocusMusicMuted;
+
+    // Focus-driven — called from both the WebGL OnFocusChanged path (UIManager) and OnApplicationFocus below.
+    internal void SetMuteAll(bool forceMute)
+    {
+        if (forceMute == isForceMuted) return;
+        isForceMuted = forceMute;
+
+        if (forceMute)
+        {
+            preFocusGameMuted = gameSoundSource.mute;
+            preFocusMusicMuted = bgMusicSource.mute;
+            gameSoundSource.mute = true;
+            bgMusicSource.mute = true;
+        }
+        else
+        {
+            gameSoundSource.mute = preFocusGameMuted;
+            bgMusicSource.mute = preFocusMusicMuted;
+        }
+    }
+
     private void OnApplicationFocus(bool hasFocus)
     {
-        AudioListener.volume = hasFocus ? 1.0f : 0.0f;
+        SetMuteAll(!hasFocus);
     }
 
     private void OnApplicationPause(bool pauseStatus)
     {
-        AudioListener.volume = pauseStatus ? 0.0f : 1.0f;
+        SetMuteAll(pauseStatus);
     }
 }

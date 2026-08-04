@@ -29,6 +29,12 @@ public class SocketIOManager : MonoBehaviour
     internal bool isConnected;
     internal bool isInitialized;
     internal bool isExiting;
+    private bool isBeingDestroyed;
+
+    private bool hasFocus = true;
+    private float focusLostTime;
+    private Coroutine focusCheckRoutine;
+    private const float MAX_BACKGROUND_TIME = 60f;
 
     private Coroutine pingCoroutine;
     private float lastPongTime;
@@ -154,6 +160,7 @@ public class SocketIOManager : MonoBehaviour
         gameSocket.On<string>("result", OnResultReceived);
         gameSocket.On<string>("pong", OnPongReceived);
         gameSocket.On<string>("AnotherDevice", OnAnotherDevice);
+        gameSocket.On<string>("balance:sync", OnBalanceSync);
 
         socketManager.Open();
     }
@@ -212,22 +219,55 @@ public class SocketIOManager : MonoBehaviour
     {
         Debug.LogError($"[SocketIO] Error: {err.message}");
 
-        if (!gameManager.isInitialized)
+        if (!string.IsNullOrEmpty(err.message) && err.message.Contains("Session expired"))
         {
-            gameManager.initializationFailed = true;
-        }
+            Debug.LogWarning("[SocketIO] Session expired detected");
 
-        if (popupManager != null)
-        {
-            popupManager.ShowServerError(err.message);
-        }
+            if (popupManager != null)
+            {
+                popupManager.ShowSessionExpiredError();
+            }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        if (JSManager != null)
-        {
-            JSManager.SendCustomMessage("error");
-        }
+            if (JSManager != null)
+            {
+                JSManager.SendCustomMessage("session_expired");
+            }
 #endif
+        }
+        else
+        {
+            if (!gameManager.isInitialized)
+            {
+                gameManager.initializationFailed = true;
+            }
+
+            if (popupManager != null)
+            {
+                popupManager.ShowServerError(err.message);
+            }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if (JSManager != null)
+            {
+                JSManager.SendCustomMessage("error");
+            }
+#endif
+        }
+    }
+
+    private void OnBalanceSync(string data)
+    {
+        BalanceSyncPayload syncPayload = JsonConvert.DeserializeObject<BalanceSyncPayload>(data);
+        if (syncPayload == null) return;
+
+        gameManager.playerData.balance = syncPayload.balance;
+        uiManager.UpdateBalanceDisplay(syncPayload.balance);
+
+        if (!gameManager.CanAffordBet() && popupManager != null)
+        {
+            popupManager.ShowInsufficientFundsError();
+        }
     }
 
     private void OnInitReceived(string jsonData)
@@ -321,6 +361,61 @@ public class SocketIOManager : MonoBehaviour
     {
         if (RaycastBlocker != null) RaycastBlocker.SetActive(active);
     }
+
+    #region Focus Timeout
+
+    internal void HandleFocusChange(bool focus)
+    {
+        hasFocus = focus;
+
+        if (!focus)
+        {
+            focusLostTime = Time.time;
+            if (focusCheckRoutine == null && !isExiting && !isBeingDestroyed)
+                focusCheckRoutine = StartCoroutine(FocusTimeoutCheck());
+        }
+        else
+        {
+            if (focusCheckRoutine != null)
+            {
+                StopCoroutine(focusCheckRoutine);
+                focusCheckRoutine = null;
+            }
+        }
+    }
+
+    private IEnumerator FocusTimeoutCheck()
+    {
+        while (!hasFocus && !isExiting && !isBeingDestroyed)
+        {
+            if (Time.time - focusLostTime >= MAX_BACKGROUND_TIME)
+            {
+                Debug.LogWarning("[SocketIO] Background timeout - closing connection");
+                isConnected = false;
+                StopPingRoutine();
+
+                if (socketManager != null)
+                {
+                    try { socketManager.Close(); }
+                    catch (Exception e) { Debug.LogWarning($"[SocketIO] Focus close error: {e.Message}"); }
+                }
+
+                if (popupManager != null)
+                {
+                    popupManager.ShowDisconnectionPopup();
+                }
+
+                focusCheckRoutine = null;
+                yield break;
+            }
+
+            yield return new WaitForSecondsRealtime(1f);
+        }
+
+        focusCheckRoutine = null;
+    }
+
+    #endregion
 
     #region Ping/Pong Health Check
 
@@ -460,6 +555,7 @@ public class SocketIOManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        isBeingDestroyed = true;
         CloseSocket();
     }
 

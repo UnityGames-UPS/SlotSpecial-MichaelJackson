@@ -346,6 +346,12 @@ public class PlayerData
 }
 
 [Serializable]
+public class BalanceSyncPayload
+{
+    public double balance;
+}
+
+[Serializable]
 public class SpinResult
 {
     public List<List<int>> resultMatrix;  // Client uses int matrix [col][row], 5 cols x 3 rows

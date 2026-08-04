@@ -159,6 +159,19 @@ public class UIManager : MonoBehaviour
 
     #region Initialization
 
+    private void Awake()
+    {
+        gameManager?.socketManager?.JSManager?.RegisterVisibilityListener(gameObject.name);
+    }
+
+    public void OnFocusChanged(string value)
+    {
+        bool focused = value == "1";
+        Debug.Log("UNITY FOCUS CHANGED: " + value + " (focused: " + focused + ")");
+        audioController?.SetMuteAll(!focused);
+        gameManager?.socketManager?.HandleFocusChange(focused);
+    }
+
     private void Update()
     {
         if (gameRulesPanel != null && gameRulesPanel.activeSelf)
