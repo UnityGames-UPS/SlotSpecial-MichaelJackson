@@ -5,7 +5,7 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 
 [System.Serializable]
-public struct VideoScenarioData
+internal struct VideoScenarioData
 {
     [SerializeField] internal string name;
     [SerializeField] internal VideoClip videoClip;

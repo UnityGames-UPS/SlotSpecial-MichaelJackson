@@ -151,9 +151,9 @@ public class SlotView : MonoBehaviour
     // Restored to their original sibling index right before the next spin starts.
     private struct ElevatedBonusIcon
     {
-        public int column;
-        public int imageIndex;
-        public int originalSiblingIndex;
+        internal int column;
+        internal int imageIndex;
+        internal int originalSiblingIndex;
     }
     private List<ElevatedBonusIcon> elevatedBonusIcons = new List<ElevatedBonusIcon>();
 

@@ -8,8 +8,8 @@ using UnityEngine.EventSystems;
 // a leftward swipe in screen coordinates, so we check the X-axis instead.
 public class SwipeHandler : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public UnityEvent OnSwipeDown;
-    public float minSwipeDistance = 50f;
+    [SerializeField] internal UnityEvent OnSwipeDown;
+    [SerializeField] private float minSwipeDistance = 50f;
 
     private Vector2 startPosition;
     private bool swipeDetected = false;

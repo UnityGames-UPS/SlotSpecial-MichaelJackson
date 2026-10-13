@@ -416,7 +416,7 @@ public class AuthData
 
 #region Enums
 
-public enum GameState
+internal enum GameState
 {
     Initializing,
     Idle,
@@ -433,7 +433,7 @@ public enum GameState
 /// <summary>
 /// Converts server data to client GameConfig
 /// </summary>
-public static class InitDataConverter
+internal static class InitDataConverter
 {
     internal static GameConfig ConvertToGameConfig(InitData serverData)
     {
